@@ -126,6 +126,7 @@
       <a href="#cartoes" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="credit-card" class="w-5 h-5"></i>Meus Cartões</a>
       <a href="#alvos" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="target" class="w-5 h-5"></i>Metas &amp; Alvos</a>
       <a href="#lancamentos" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="rocket" class="w-5 h-5"></i>Novos Projetos</a>
+      <a href="#contas" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="bell-ring" class="w-5 h-5"></i>Contas a Pagar<span data-bill-badge class="hidden ml-auto min-w-[1.4rem] h-[1.4rem] px-1.5 rounded-full bg-magre-red text-white text-[10px] font-bold items-center justify-center"></span></a>
       <a href="#extrato" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="receipt-text" class="w-5 h-5"></i>Extrato Completo</a>
     </nav>
 
@@ -158,6 +159,7 @@
         <a href="#cartoes" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="credit-card" class="w-3.5 h-3.5"></i>Cartões</a>
         <a href="#alvos" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="target" class="w-3.5 h-3.5"></i>Metas</a>
         <a href="#lancamentos" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="rocket" class="w-3.5 h-3.5"></i>Projetos</a>
+        <a href="#contas" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="bell-ring" class="w-3.5 h-3.5"></i>Contas<span data-bill-badge class="hidden min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-magre-red text-white text-[9px] font-bold items-center justify-center"></span></a>
         <a href="#extrato" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="receipt-text" class="w-3.5 h-3.5"></i>Extrato</a>
       </nav>
     </div>
@@ -180,10 +182,14 @@
             </span>
             <span id="syncIconWrap"><i data-lucide="refresh-cw" class="w-4 h-4 text-magre-muted ml-1"></i></span>
           </button>
+          <a href="#contas" title="Contas a pagar" class="glass relative w-12 h-12 rounded-2xl flex items-center justify-center text-magre-muted hover:text-magre-orange hover:border-magre-orange/40 transition"><i data-lucide="bell" class="w-5 h-5"></i><span data-bill-badge class="hidden absolute -top-1.5 -right-1.5 min-w-[1.3rem] h-[1.3rem] px-1 rounded-full bg-magre-red text-white text-[10px] font-bold items-center justify-center ring-2 ring-[#1A1A1A]"></span></a>
           <button data-open-settings title="Configurar Google Planilhas" class="glass w-12 h-12 rounded-2xl flex items-center justify-center text-magre-muted hover:text-magre-orange hover:border-magre-orange/40 transition"><i data-lucide="settings" class="w-5 h-5"></i></button>
           <div class="w-12 h-12 rounded-2xl grad-orange flex items-center justify-center font-bold text-black shadow-glow">VC</div>
         </div>
       </header>
+
+      <!-- Alerta de contas -->
+      <div id="billAlert" class="hidden"></div>
 
       <!-- ===================== SEÇÃO 1 · KPIs ===================== -->
       <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-5">
@@ -272,6 +278,31 @@
 
           <div id="goalsList" class="mt-6 space-y-4"></div>
         </div>
+      </section>
+
+      <!-- ===================== CONTAS A PAGAR ===================== -->
+      <section id="contas" class="scroll-mt-32 panel rounded-3xl p-5 sm:p-7">
+        <div class="flex flex-wrap items-center gap-3 justify-between">
+          <div>
+            <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="bell-ring" class="w-5 h-5 text-magre-orange"></i>Contas a Pagar</h2>
+            <p class="text-xs text-magre-muted mt-1">Faturas, boletos e serviços recorrentes. Ao pagar, a conta vai direto para o extrato.</p>
+          </div>
+          <button data-toggle="billForm" class="grad-orange text-black text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-glow hover:brightness-110 transition"><i data-lucide="plus" class="w-4 h-4"></i>Nova conta</button>
+        </div>
+
+        <form id="billForm" class="hidden mt-5 grid grid-cols-2 lg:grid-cols-12 gap-3 p-4 rounded-2xl bg-black/20 border border-white/5 fade-in">
+          <div class="col-span-2 lg:col-span-4"><label class="label">Conta</label><input class="input" name="nome" placeholder="Ex: Energia, Internet, Aluguel" required /></div>
+          <div class="lg:col-span-2"><label class="label">Dia do vencimento</label><input class="input" name="venc" type="number" min="1" max="31" placeholder="10" required /></div>
+          <div class="lg:col-span-2"><label class="label">Valor <span class="normal-case tracking-normal font-normal">(opcional)</span></label><input class="input" name="valor" type="number" min="0" step="0.01" placeholder="Variável" /></div>
+          <div class="col-span-2 lg:col-span-2"><label class="label">Categoria</label><select class="input" name="cat" id="billCat"></select></div>
+          <div class="col-span-2 lg:col-span-2 flex items-end"><button class="w-full grad-orange text-black font-bold text-sm py-3 rounded-xl">Cadastrar</button></div>
+          <label class="col-span-2 lg:col-span-12 flex items-center gap-2.5 text-xs text-magre-muted cursor-pointer select-none">
+            <input type="checkbox" name="pagaMes" class="w-4 h-4 accent-[#FF6A00]" /> A deste mês já está paga (o primeiro lembrete será no próximo mês)
+          </label>
+        </form>
+
+        <div id="billsGrid" class="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+        <div id="billsEmpty" class="hidden py-10 text-center text-magre-muted text-sm"><i data-lucide="calendar-check" class="w-8 h-8 mx-auto mb-3 opacity-60"></i>Nenhuma conta cadastrada ainda.</div>
       </section>
 
       <!-- ===================== SEÇÃO 3 · FORMULÁRIO ===================== -->
@@ -365,6 +396,34 @@
   <span id="toastText">Lançamento registrado</span>
 </div>
 
+<!-- Modal: Pagar conta -->
+<div id="payModal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
+  <div data-close-pay class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+  <form id="payForm" class="relative w-full max-w-md panel rounded-3xl p-6 sm:p-7 shadow-soft fade-in">
+    <div class="flex items-start gap-3">
+      <div id="payIcon" class="w-11 h-11 rounded-xl grad-orange flex items-center justify-center shrink-0"></div>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-lg font-bold truncate" id="payTitle">Pagar conta</h3>
+        <p class="text-xs text-magre-muted mt-1" id="paySub"></p>
+      </div>
+      <button type="button" data-close-pay class="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-magre-muted"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div class="mt-6 grid grid-cols-2 gap-4">
+      <div class="col-span-2 sm:col-span-1">
+        <label class="label" for="payValor">Valor pago (R$)</label>
+        <input id="payValor" class="input" type="number" min="0.01" step="0.01" placeholder="0,00" required />
+      </div>
+      <div class="col-span-2 sm:col-span-1"><label class="label" for="payData">Data do pagamento</label><input id="payData" class="input" type="date" required /></div>
+      <div class="col-span-2"><label class="label" for="payOrigem">Pago com</label><select id="payOrigem" class="input"></select></div>
+      <label class="col-span-2 flex items-start gap-2.5 text-xs text-magre-muted cursor-pointer select-none">
+        <input type="checkbox" id="payUpdate" class="w-4 h-4 mt-0.5 accent-[#FF6A00]" />
+        <span id="payUpdateLabel">Usar este valor como padrão nos próximos meses</span>
+      </label>
+    </div>
+    <button type="submit" class="mt-6 w-full grad-orange text-black font-bold text-sm py-3.5 rounded-xl shadow-glow hover:brightness-110 transition flex items-center justify-center gap-2"><i data-lucide="check-check" class="w-4 h-4"></i>Liquidar e lançar no extrato</button>
+  </form>
+</div>
+
 <!-- Modal: Google Planilhas -->
 <div id="settingsModal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
   <div data-close-settings class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
@@ -410,6 +469,10 @@ const STORAGE_KEY = 'magrebank_demo_v1';
 const today = new Date();
 const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 const daysAgo = n => { const d = new Date(today); d.setDate(d.getDate() - n); return iso(d); };
+const ym = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+const addMonths = (s, n) => { const [y, m] = s.split('-').map(Number); return ym(new Date(y, m - 1 + n, 1)); };
+const dueDate = (cycle, day) => { const [y, m] = cycle.split('-').map(Number); return new Date(y, m - 1, Math.min(day, new Date(y, m, 0).getDate())); };
+const fmtCycle = c => { const [y, m] = c.split('-'); return `${m}/${y}`; };
 
 const BANK_TINTS = {
   nubank:    'rgba(138, 5, 190, .55)',
@@ -455,12 +518,26 @@ function seed() {
       { id: 't8', desc: 'Conta de energia', valor: 312.45, data: daysAgo(8), tipo: 'despesa', cat: 'Contas', origem: 'conta' },
       { id: 't9', desc: 'Streaming + música', valor: 89.8, data: daysAgo(9), tipo: 'cartao', cat: 'Assinaturas', origem: 'c4' },
       { id: 't10', desc: 'Restaurante · jantar', valor: 268, data: daysAgo(10), tipo: 'cartao', cat: 'Lazer', origem: 'c2' }
-    ]
+    ],
+    bills: seedBills()
   };
+}
+
+/* Contas de exemplo, com datas relativas a hoje para mostrar todos os status */
+function seedBills() {
+  const d = today.getDate(), atual = ym(today), anterior = addMonths(atual, -1);
+  return [
+    { id: 'b1', nome: 'Internet Fibra', venc: Math.max(1, d - 2), valor: 119.9, cat: 'Internet', pagoAte: anterior },
+    { id: 'b2', nome: 'Conta de Água', venc: Math.min(28, d + 2), valor: null, cat: 'Água', pagoAte: anterior },
+    { id: 'b3', nome: 'Energia Elétrica', venc: Math.min(28, d + 9), valor: null, cat: 'Energia', pagoAte: anterior },
+    { id: 'b4', nome: 'Condomínio', venc: Math.min(28, d + 15), valor: 680, cat: 'Condomínio', pagoAte: anterior },
+    { id: 'b5', nome: 'Aluguel', venc: Math.max(1, d - 2), valor: 2300, cat: 'Aluguel', pagoAte: atual }
+  ];
 }
 
 let state;
 try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || seed(); } catch (e) { state = seed(); }
+if (!Array.isArray(state.bills)) state.bills = seedBills();
 let activeFilter = 'all';
 
 const save = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} };
@@ -756,6 +833,10 @@ function removeTx(id) {
   const t = state.tx.find(x => x.id === id);
   if (!t) return;
   if (t.tipo === 'aporte') { const g = goalById(t.origem); if (g) g.guardado = Math.max(0, g.guardado - t.valor); }
+  if (t.conta && t.ref) {                       // pagamento de conta removido: a conta volta a ficar em aberto
+    const b = state.bills.find(x => x.id === t.conta);
+    if (b && b.pagoAte === t.ref) b.pagoAte = addMonths(t.ref, -1);
+  }
   state.tx = state.tx.filter(x => x.id !== id);
   commit();
   toast('Lançamento removido');
@@ -764,8 +845,155 @@ function setFilter(f) { activeFilter = f; renderCards(); renderFilters(); render
 
 function commit() { save(); renderAll(); fakeSync(); }
 
+/* ---------- Contas a pagar ---------- */
+const BILL_CATS = ['Aluguel', 'Condomínio', 'Água', 'Energia', 'Gás', 'Internet', 'Telefone', 'Assinaturas', 'Educação', 'Saúde', 'Seguros', 'Impostos', 'Outros'];
+const BILL_ICONS = { 'Aluguel': 'home', 'Condomínio': 'building-2', 'Água': 'droplets', 'Energia': 'zap', 'Gás': 'flame', 'Internet': 'wifi', 'Telefone': 'smartphone', 'Assinaturas': 'tv', 'Educação': 'graduation-cap', 'Saúde': 'heart-pulse', 'Seguros': 'shield', 'Impostos': 'landmark', 'Outros': 'receipt' };
+const avisoDias = () => Number(state.diasAviso) || 3;
+const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+let alertDismissed = false, payingId = null;
+
+function billStatus(b) {
+  const atual = ym(today);
+  const cycle = b.pagoAte ? addMonths(b.pagoAte, 1) : atual;     // próximo mês em aberto
+  const due = dueDate(cycle, b.venc);
+  const diff = Math.round((due - startOfToday()) / 86400000);
+  let atrasados = 0;                                              // quantos meses já venceram sem pagamento
+  for (let c = cycle; c <= atual; c = addMonths(c, 1)) if (dueDate(c, b.venc) < startOfToday()) atrasados++;
+  const status = diff < 0 ? 'vencida' : diff <= avisoDias() ? 'breve' : cycle > atual ? 'paga' : 'pendente';
+  return { cycle, due, diff, status, atrasados };
+}
+
+function statusPill(s) {
+  if (s.status === 'vencida') return `<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-magre-red/15 text-magre-red border border-magre-red/25">Vencida há ${-s.diff} ${-s.diff === 1 ? 'dia' : 'dias'}${s.atrasados > 1 ? ` · ${s.atrasados} meses` : ''}</span>`;
+  if (s.status === 'breve') return `<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-magre-orange/15 text-magre-orange2 border border-magre-orange/30">${s.diff === 0 ? 'Vence hoje' : s.diff === 1 ? 'Vence amanhã' : `Vence em ${s.diff} dias`}</span>`;
+  if (s.status === 'paga') return `<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-magre-green/10 text-magre-green border border-magre-green/20">Paga este mês</span>`;
+  return `<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white/5 text-magre-muted border border-white/10">Vence em ${s.diff} dias</span>`;
+}
+
+function renderBills() {
+  const items = state.bills.map(b => ({ b, s: billStatus(b) })).sort((x, y) => x.s.due - y.s.due);
+  $('#billsEmpty').classList.toggle('hidden', items.length > 0);
+  $('#billsGrid').innerHTML = items.map(({ b, s }) => {
+    const ring = s.status === 'vencida' ? 'border-magre-red/40' : s.status === 'breve' ? 'border-magre-orange/40' : 'border-white/5';
+    const iconBg = s.status === 'vencida' ? 'bg-magre-red/15 text-magre-red' : s.status === 'paga' ? 'bg-magre-green/10 text-magre-green' : 'bg-magre-orange/10 text-magre-orange';
+    return `
+    <div class="rounded-2xl p-4 bg-black/20 border ${ring} transition fade-in flex flex-col">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center shrink-0"><i data-lucide="${BILL_ICONS[b.cat] || 'receipt'}" class="w-5 h-5"></i></div>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-semibold truncate">${escapeHtml(b.nome)}</p>
+          <p class="text-[11px] text-magre-muted">Todo dia ${String(b.venc).padStart(2, '0')} · ${escapeHtml(b.cat)}</p>
+        </div>
+        <button data-bill-del="${b.id}" class="w-7 h-7 rounded-lg text-magre-muted hover:text-magre-red hover:bg-magre-red/10 flex items-center justify-center" title="Excluir conta"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+      </div>
+      <div class="mt-4 flex items-end justify-between gap-2">
+        <div>
+          <p class="text-[11px] text-magre-muted">${s.status === 'paga' ? 'Próximo vencimento' : 'Vencimento'} · ${s.due.toLocaleDateString('pt-BR')}</p>
+          <p class="text-lg font-extrabold mt-0.5">${b.valor ? money(b.valor) : '<span class="text-magre-muted text-sm font-semibold">Valor variável</span>'}</p>
+        </div>
+        ${statusPill(s)}
+      </div>
+      <button data-bill-pay="${b.id}" class="mt-4 w-full text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 ${s.status === 'paga' ? 'bg-white/5 text-magre-muted hover:text-magre-light' : 'grad-orange text-black hover:brightness-110'}">
+        <i data-lucide="${s.status === 'paga' ? 'calendar-clock' : 'check-circle-2'}" class="w-4 h-4"></i>${s.status === 'paga' ? 'Antecipar ' + fmtCycle(s.cycle) : 'Pagar ' + fmtCycle(s.cycle)}
+      </button>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('[data-bill-pay]').forEach(btn => btn.addEventListener('click', () => openPay(btn.dataset.billPay)));
+  document.querySelectorAll('[data-bill-del]').forEach(btn => btn.addEventListener('click', () => {
+    const b = state.bills.find(x => x.id === btn.dataset.billDel);
+    if (!confirm(`Excluir a conta "${b.nome}"? Os pagamentos já lançados continuam no extrato.`)) return;
+    state.bills = state.bills.filter(x => x.id !== b.id); commit(); toast('Conta excluída');
+  }));
+  renderBillAlert(items);
+}
+
+function renderBillAlert(items) {
+  const venc = items.filter(i => i.s.status === 'vencida');
+  const breve = items.filter(i => i.s.status === 'breve');
+  const n = venc.length + breve.length;
+  document.querySelectorAll('[data-bill-badge]').forEach(el => {
+    el.textContent = n; el.classList.toggle('hidden', !n); el.classList.toggle('flex', !!n);
+    el.classList.toggle('bg-magre-red', venc.length > 0); el.classList.toggle('bg-magre-orange', !venc.length && n > 0);
+  });
+  const box = $('#billAlert');
+  if (!n || alertDismissed) { box.className = 'hidden'; box.innerHTML = ''; return; }
+  const red = venc.length > 0;
+  const nomes = (red ? venc : breve).map(i => escapeHtml(i.b.nome)).join(', ');
+  const titulo = red
+    ? `${venc.length} ${venc.length === 1 ? 'conta vencida' : 'contas vencidas'} sem pagamento`
+    : `${breve.length} ${breve.length === 1 ? 'conta vence' : 'contas vencem'} nos próximos ${avisoDias()} dias`;
+  const extra = red && breve.length ? ` · e ${breve.length} ${breve.length === 1 ? 'vence' : 'vencem'} em breve` : '';
+  box.className = `fade-in rounded-2xl px-4 sm:px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 border ${red ? 'bg-magre-red/10 border-magre-red/30' : 'bg-magre-orange/10 border-magre-orange/30'}`;
+  box.innerHTML = `
+    <div class="flex items-start gap-3 flex-1 min-w-0">
+      <div class="w-10 h-10 rounded-xl ${red ? 'bg-magre-red' : 'grad-orange'} flex items-center justify-center shrink-0"><i data-lucide="${red ? 'alert-triangle' : 'bell-ring'}" class="w-5 h-5 text-black"></i></div>
+      <div class="min-w-0">
+        <p class="text-sm font-bold ${red ? 'text-magre-red' : 'text-magre-orange2'}">${titulo}${extra}</p>
+        <p class="text-xs text-magre-muted mt-0.5 truncate">${nomes}</p>
+      </div>
+    </div>
+    <div class="flex gap-2 shrink-0">
+      <a href="#contas" class="text-xs font-bold px-4 py-2.5 rounded-xl ${red ? 'bg-magre-red text-black' : 'grad-orange text-black'}">Ver contas</a>
+      <button id="billAlertClose" class="w-10 h-10 rounded-xl hover:bg-white/5 flex items-center justify-center text-magre-muted" title="Dispensar"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>`;
+  $('#billAlertClose').addEventListener('click', () => { alertDismissed = true; box.className = 'hidden'; box.innerHTML = ''; });
+}
+
+function openPay(id) {
+  const b = state.bills.find(x => x.id === id); if (!b) return;
+  const s = billStatus(b);
+  payingId = id;
+  $('#payIcon').innerHTML = `<i data-lucide="${BILL_ICONS[b.cat] || 'receipt'}" class="w-5 h-5 text-black"></i>`;
+  $('#payTitle').textContent = 'Pagar ' + b.nome;
+  $('#paySub').textContent = `Referência ${fmtCycle(s.cycle)} · vencimento ${s.due.toLocaleDateString('pt-BR')}`;
+  $('#payValor').value = b.valor || '';
+  $('#payData').value = iso(today);
+  $('#payOrigem').innerHTML = `<option value="conta">Conta Corrente Magre</option>` + state.cards.map(c => `<option value="${c.id}">Cartão ${escapeHtml(c.banco)}</option>`).join('');
+  $('#payUpdate').checked = false;
+  $('#payUpdateLabel').textContent = b.valor ? `Atualizar o valor padrão desta conta (hoje ${brl(b.valor)})` : 'Usar este valor como padrão nos próximos meses';
+  $('#payModal').classList.remove('hidden'); icons();
+  setTimeout(() => $('#payValor').focus(), 50);
+}
+const closePay = () => { $('#payModal').classList.add('hidden'); payingId = null; };
+document.querySelectorAll('[data-close-pay]').forEach(el => el.addEventListener('click', closePay));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePay(); });
+
+$('#payForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const b = state.bills.find(x => x.id === payingId); if (!b) return closePay();
+  const s = billStatus(b);
+  const valor = parseFloat($('#payValor').value);
+  const origem = $('#payOrigem').value;
+  if (!valor || valor <= 0) return toast('Informe o valor pago', true);
+  if (origem !== 'conta') {
+    const c = cardById(origem);
+    if (valor > c.limite - usedOf(c.id)) return toast(`Limite insuficiente no Cartão ${c.banco}`, true);
+  }
+  if ($('#payUpdate').checked) b.valor = valor;
+  b.pagoAte = s.cycle;
+  addTx({ desc: `${b.nome} · ref. ${fmtCycle(s.cycle)}`, valor, data: $('#payData').value, tipo: origem === 'conta' ? 'despesa' : 'cartao', cat: b.cat, origem, conta: b.id, ref: s.cycle });
+  closePay();
+  toast(`${b.nome} liquidada · ${brl(valor)} lançado no extrato`);
+});
+
+$('#billCat').innerHTML = BILL_CATS.map(c => `<option>${c}</option>`).join('');
+$('#billForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const nome = fd.get('nome').trim();
+  const valor = parseFloat(fd.get('valor'));
+  state.bills.push({
+    id: uid('b'), nome, venc: Math.min(31, Math.max(1, parseInt(fd.get('venc')))),
+    valor: valor > 0 ? valor : null, cat: fd.get('cat'),
+    pagoAte: fd.get('pagaMes') ? ym(today) : addMonths(ym(today), -1)
+  });
+  e.target.reset(); e.target.classList.add('hidden');
+  alertDismissed = false;
+  commit(); toast(`Conta "${nome}" cadastrada`);
+});
+
 function renderAll() {
-  renderKPIs(); renderCards(); renderGoals(); renderFilters(); renderTx();
+  renderKPIs(); renderCards(); renderGoals(); renderBills(); renderFilters(); renderTx();
   const tipo = tipoAtual(), sel = $('#fOrigem').value;
   updateFormDynamic();
   if ([...$('#fOrigem').options].some(o => o.value === sel)) $('#fOrigem').value = sel;
@@ -844,14 +1072,14 @@ async function api(action, data, c = cfg) {
   if (!j.ok) throw new Error(j.error || 'Erro desconhecido');
   return j;
 }
-const payload = () => ({ saldoInicial: state.saldoInicial, cards: state.cards, goals: state.goals, tx: state.tx });
+const payload = () => ({ saldoInicial: state.saldoInicial, cards: state.cards, goals: state.goals, tx: state.tx, bills: state.bills });
 
 async function pullFromSheet() {
   if (!connected()) { setSync('local'); openSettings(); return; }
   setSync('busy', 'Lendo a planilha…');
   try {
     const { data } = await api('load');
-    const empty = !data.tx.length && !data.cards.length && !data.goals.length;
+    const empty = !data.tx.length && !data.cards.length && !data.goals.length && !(data.bills || []).length;
     if (empty) {
       await api('save', payload());           // planilha nova: envia os dados atuais
     } else {
@@ -924,7 +1152,7 @@ function toast(msg, err = false) {
 }
 
 /* ---------- Navegação ativa ---------- */
-const sections = ['dashboard', 'cartoes', 'alvos', 'lancamentos', 'extrato'];
+const sections = ['dashboard', 'cartoes', 'alvos', 'contas', 'lancamentos', 'extrato'];
 const navObserver = new IntersectionObserver(entries => {
   entries.forEach(en => {
     if (!en.isIntersecting) return;
