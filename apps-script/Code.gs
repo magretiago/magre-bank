@@ -1,6 +1,6 @@
 /**
  * MAGRE BANK · API do Google Planilhas + lembretes de contas por e-mail
- * Versão 2 · contas bancárias, transferências, forma de pagamento e categorias
+ * Versão 3 · contas bancárias, transferências, categorias, faturas de cartão e parcelas
  * ------------------------------------------------------------
  * Cole este arquivo em: Planilha → Extensões → Apps Script.
  * 1. Troque a CHAVE abaixo por uma senha só sua.
@@ -18,13 +18,14 @@
 
 const CHAVE = 'troque-por-uma-senha-forte';
 const HORA_LEMBRETE = 8;
-const VERSAO = 2;
+const VERSAO = 3;
 
 // Colunas novas sempre entram no FINAL, para os dados antigos continuarem alinhados.
 const ABAS = {
-  lancamentos: { nome: 'Lancamentos',     cab: ['id', 'data', 'descricao', 'valor', 'tipo', 'categoria', 'origem', 'origem_nome', 'conta_id', 'referencia', 'forma', 'destino', 'conta_aporte'] },
+  lancamentos: { nome: 'Lancamentos',     cab: ['id', 'data', 'descricao', 'valor', 'tipo', 'categoria', 'origem', 'origem_nome', 'conta_id', 'referencia', 'forma', 'destino', 'conta_aporte', 'cartao', 'parcela', 'parcelas', 'grupo', 'fatura'] },
   bancos:      { nome: 'ContasBancarias', cab: ['id', 'nome', 'tipo', 'saldo_inicial', 'saldo_atual'] },
-  cartoes:     { nome: 'Cartoes',         cab: ['id', 'banco', 'limite', 'vencimento', 'bandeira', 'final'] },
+  cartoes:     { nome: 'Cartoes',         cab: ['id', 'banco', 'limite', 'vencimento', 'bandeira', 'final', 'fechamento', 'fechamento_estimado'] },
+  faturas:     { nome: 'Faturas',         cab: ['cartao_id', 'cartao', 'fatura', 'periodo', 'fechamento', 'vencimento', 'total', 'pago', 'em_aberto', 'situacao'] },
   alvos:       { nome: 'Alvos',           cab: ['id', 'nome', 'alvo', 'guardado', 'icone'] },
   contas:      { nome: 'Contas',          cab: ['id', 'nome', 'dia_vencimento', 'valor', 'categoria', 'pago_ate', 'proximo_vencimento', 'situacao'] },
   categorias:  { nome: 'Categorias',      cab: ['tipo', 'nome'] },
@@ -86,6 +87,7 @@ function aba(chave) {
     criarCabecalho(sh);
     sh.setFrozenRows(1);
     if (chave === 'contas') sh.getRange('F:F').setNumberFormat('@');
+    if (chave === 'faturas') sh.getRange('C:C').setNumberFormat('@');
   } else {
     // aba de uma versão anterior: acrescenta as colunas novas ao cabeçalho
     const atual = sh.getRange(1, 1, 1, def.cab.length).getValues()[0];
@@ -132,7 +134,9 @@ function lerTudo() {
     categories,
     cards: linhas('cartoes').map(r => ({
       id: String(r.id), banco: String(r.banco), limite: Number(r.limite), venc: Number(r.vencimento),
-      bandeira: String(r.bandeira || 'Crédito'), final: String(r.final || '')
+      bandeira: String(r.bandeira || 'Crédito'), final: String(r.final || ''),
+      fech: r.fechamento === '' ? undefined : Number(r.fechamento),
+      fechEstimado: r.fechamento_estimado === true || String(r.fechamento_estimado).toLowerCase() === 'sim'
     })),
     goals: linhas('alvos').map(r => ({
       id: String(r.id), nome: String(r.nome), alvo: Number(r.alvo), guardado: Number(r.guardado), icone: String(r.icone || 'target')
@@ -151,6 +155,9 @@ function lerTudo() {
       if (r.forma) t.forma = String(r.forma);
       if (r.destino) t.destino = String(r.destino);
       if (r.conta_aporte) t.acc = String(r.conta_aporte);
+      if (r.cartao) t.cartao = String(r.cartao);
+      if (t.tipo === 'fatura') t.ref = dataTexto(r.referencia, 'yyyy-MM');
+      if (Number(r.parcelas) > 1) { t.parc = Number(r.parcela); t.parcN = Number(r.parcelas); t.grupo = String(r.grupo); }
       return t;
     })
   };
@@ -177,6 +184,7 @@ function saldoConta(id, inicial, tx) {
     if (t.tipo === 'receita' && t.origem === id) v += t.valor;
     else if (t.tipo === 'despesa' && t.origem === id) v -= t.valor;
     else if (t.tipo === 'aporte' && t.acc === id) v -= t.valor;
+    else if (t.tipo === 'fatura' && t.origem === id) v -= t.valor;
     else if (t.tipo === 'transferencia') { if (t.origem === id) v -= t.valor; if (t.destino === id) v += t.valor; }
   });
   return Math.round(v * 100) / 100;
@@ -195,7 +203,8 @@ function gravarTudo(d) {
   const nomeAlvo = Object.fromEntries(d.goals.map(g => [g.id, g.nome]));
   const origemNome = t => {
     if (t.tipo === 'transferencia') return `${nomeConta[t.origem] || t.origem} → ${nomeConta[t.destino] || t.destino}`;
-    if (t.tipo === 'cartao') return nomeCartao[t.origem] || t.origem;
+    if (t.tipo === 'cartao') return (nomeCartao[t.origem] || t.origem) + (t.fatura ? ' · fatura ' + mesCurto(t.fatura) : '') + (t.parcN > 1 ? ` · ${t.parc}/${t.parcN}` : '');
+    if (t.tipo === 'fatura') return `${nomeConta[t.origem] || t.origem}${t.forma ? ' · ' + t.forma : ''} → Fatura ${(nomeCartao[t.cartao] || '').replace('Cartão ', '')} ${mesCurto(t.ref || '')}`;
     if (t.tipo === 'aporte') return (nomeAlvo[t.origem] || t.origem) + (t.acc ? ' · de ' + (nomeConta[t.acc] || t.acc) : '');
     return (nomeConta[t.origem] || (t.origem === 'conta' ? 'Conta Corrente' : t.origem)) + (t.forma ? ' · ' + t.forma : '');
   };
@@ -210,7 +219,13 @@ function gravarTudo(d) {
     Object.keys(d.categories).forEach(k => (d.categories[k] || []).forEach(n => rows.push([k, n])));
     substituir('categorias', rows);
   }
-  substituir('cartoes', d.cards.map(c => [c.id, c.banco, c.limite, c.venc, c.bandeira || '', c.final || '']));
+  substituir('cartoes', d.cards.map(c => [c.id, c.banco, c.limite, c.venc, c.bandeira || '', c.final || '', c.fech || '', c.fechEstimado ? 'sim' : '']));
+  if (Array.isArray(d.faturas)) {
+    substituir('faturas', d.faturas.map(f => {
+      const aberto = Math.max(0, Math.round((f.total - f.pago) * 100) / 100);
+      return [f.cartaoId, f.banco, f.ciclo, `${dataBR(f.inicio)} a ${dataBR(f.fechamento)}`, f.fechamento, f.vencimento, f.total, f.pago, aberto, situacaoFatura(f, aberto, hoje)];
+    }));
+  }
   substituir('alvos', d.goals.map(g => [g.id, g.nome, g.alvo, g.guardado, g.icone || '']));
   substituir('contas', bills.map(b => {
     const s = situacaoConta(b, hoje, dias);
@@ -218,9 +233,29 @@ function gravarTudo(d) {
   }));
   substituir('lancamentos', d.tx.map(t => [
     t.id, t.data, t.desc, t.valor, t.tipo, t.cat, t.origem, origemNome(t),
-    t.conta || '', t.ref || '', t.forma || '', t.destino || '', t.acc || ''
+    t.conta || '', t.ref || '', t.forma || '', t.destino || '', t.acc || '',
+    t.cartao || '', t.parc || '', t.parcN || '', t.grupo || '', t.fatura || ''
   ]));
   gravarConfig({ atualizadoEm: new Date() });
+}
+
+/* ================= Faturas ================= */
+
+const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+function mesCurto(c) { const p = String(c).split('-'); return p.length === 2 ? `${MESES[Number(p[1]) - 1]}/${p[0].slice(2)}` : String(c); }
+function paraData(v) {
+  if (v instanceof Date) return inicioDoDia(v);
+  const [y, m, d] = String(v).split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function dataBR(v) { return Utilities.formatDate(paraData(v), tz(), 'dd/MM'); }
+
+function situacaoFatura(f, aberto, hoje) {
+  if (f.total > 0 && aberto <= 0) return 'Paga';
+  const fecha = paraData(f.fechamento), vence = paraData(f.vencimento);
+  if (fecha >= hoje) return 'Aberta';
+  const diff = Math.round((vence - hoje) / 86400000);
+  return diff < 0 ? `ATRASADA há ${-diff} dia(s)` : `Fechada · vence em ${diff} dia(s)`;
 }
 
 /* ================= Situação das contas ================= */
@@ -265,8 +300,23 @@ function enviar_(forcar) {
 
   const itens = dados.bills
     .map(b => Object.assign({ b }, situacaoConta(b, hoje, dias)))
-    .filter(i => i.status === 'vencida' || i.status === 'breve')
-    .sort((a, z) => a.diff - z.diff);
+    .filter(i => i.status === 'vencida' || i.status === 'breve');
+
+  // faturas de cartão em aberto que vencem dentro do aviso (ou já venceram)
+  linhas('faturas').forEach(f => {
+    const aberto = Number(f.em_aberto) || 0;
+    if (aberto <= 0) return;
+    const vence = paraData(f.vencimento);
+    const diff = Math.round((vence - hoje) / 86400000);
+    if (diff > dias) return;
+    const status = diff < 0 ? 'vencida' : 'breve';
+    itens.push({
+      b: { nome: `Fatura ${f.cartao} · ${mesCurto(dataTexto(f.fatura, 'yyyy-MM'))}`, valor: aberto },
+      status, diff, vencimento: Utilities.formatDate(vence, tz(), 'dd/MM/yyyy'),
+      rotulo: status === 'vencida' ? `VENCIDA há ${-diff} dia(s)` : diff === 0 ? 'Vence HOJE' : `Vence em ${diff} dia(s)`
+    });
+  });
+  itens.sort((a, z) => a.diff - z.diff);
 
   if (!itens.length && !forcar) return;
 

@@ -12,7 +12,7 @@ Sem planilha conectada, tudo funciona em **modo local** (dados salvos no navegad
 2. Vá em **Extensões → Apps Script**.
 3. Apague o conteúdo do editor e cole o arquivo [`apps-script/Code.gs`](apps-script/Code.gs).
 4. Na linha `const CHAVE = '...'`, troque pela sua senha secreta.
-5. No topo do editor, escolha a função **`configurar`** e clique em **Executar**. Autorize o acesso quando pedir. As abas `Lancamentos`, `ContasBancarias`, `Cartoes`, `Alvos`, `Contas`, `Categorias` e `Config` serão criadas, e o lembrete diário por e-mail (8h) é ativado.
+5. No topo do editor, escolha a função **`configurar`** e clique em **Executar**. Autorize o acesso quando pedir. As abas `Lancamentos`, `ContasBancarias`, `Cartoes`, `Faturas`, `Alvos`, `Contas`, `Categorias` e `Config` serão criadas, e o lembrete diário por e-mail (8h) é ativado.
 6. Clique em **Implantar → Nova implantação**:
    - Tipo: **App da Web**
    - Executar como: **Eu**
@@ -42,6 +42,19 @@ Na primeira conexão, se a planilha estiver vazia, o site envia os dados atuais 
 - **Forma de pagamento:** receitas e despesas registram como o dinheiro entrou ou saiu (Pix, débito, dinheiro, boleto, transferência…). O extrato mostra, por exemplo, "Itaú · Pix", e dá para filtrar por conta e por forma.
 - **Transferência:** move dinheiro entre suas contas (um saque para a carteira, um Pix entre contas suas) sem contar como receita nem despesa.
 - **Categorias:** no menu **Categorias** (ou na engrenagem ao lado do campo Categoria) você cria, renomeia e remove categorias de cada tipo. Ao renomear, os lançamentos antigos são atualizados.
+
+## Faturas de cartão e parcelamento
+
+- Cada cartão tem **dia de fechamento** e **dia de vencimento**. Compras até o fechamento entram na fatura daquele mês; depois disso, na fatura seguinte. O cartão mostra a **fatura aberta** (com quantos dias faltam para fechar), a **fatura fechada a pagar** e o **melhor dia de compra**.
+- **Parcelamento:** no gasto no cartão, escolha de 1x a 24x. Cada parcela cai numa fatura, e o limite fica comprometido pelo valor total até as faturas serem pagas.
+- **Pagar fatura:** pelo botão no cartão ou em Contas a Pagar. O valor sai da conta bancária escolhida e o limite é liberado. Pagamentos parciais são aceitos.
+- As faturas fechadas aparecem em **Contas a Pagar**, no alerta do site e no lembrete por e-mail.
+- No card **Despesas do Mês**, alterne entre **Por compra** (o que você comprou neste mês) e **Por fatura** (as faturas que vencem neste mês).
+- No extrato, cada compra mostra a fatura em que caiu, e ao filtrar um cartão aparece o filtro por fatura.
+
+### Atualizando o script (versões 1 ou 2)
+
+Sempre que o site pedir para atualizar o script (aviso vermelho no topo), siga os passos abaixo. Até lá, o site lê a planilha, mas não grava nada nela, e os lançamentos novos ficam guardados no navegador.
 
 ### Atualizando da versão 1 do script
 

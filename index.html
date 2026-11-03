@@ -225,11 +225,15 @@
         </div>
         <div class="glass rounded-3xl p-6 fade-in">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold tracking-wider uppercase text-magre-muted">Despesas Correntes</span>
+            <span class="text-xs font-semibold tracking-wider uppercase text-magre-muted">Despesas do Mês</span>
             <div class="w-10 h-10 rounded-xl bg-magre-red/10 border border-magre-red/20 flex items-center justify-center"><i data-lucide="trending-down" class="w-5 h-5 text-magre-red"></i></div>
           </div>
           <p id="kpiDespesas" class="money mt-5 text-3xl font-extrabold text-magre-red tracking-tight">R$ 0,00</p>
           <p class="mt-2 text-xs text-magre-muted flex items-center gap-1"><i data-lucide="arrow-down-right" class="w-3.5 h-3.5 text-magre-red"></i><span id="kpiDespesasInfo">Contas + cartões</span></p>
+          <div class="mt-3 inline-flex p-0.5 rounded-full bg-white/5 border border-white/5" id="despView">
+            <button type="button" data-desp-view="compra" class="text-[10px] font-bold px-2.5 py-1 rounded-full transition" title="Soma o que você comprou neste mês">Por compra</button>
+            <button type="button" data-desp-view="fatura" class="text-[10px] font-bold px-2.5 py-1 rounded-full transition" title="Soma as faturas que vencem neste mês">Por fatura</button>
+          </div>
         </div>
         <div class="glass rounded-3xl p-6 fade-in">
           <div class="flex items-center justify-between">
@@ -270,16 +274,19 @@
           <div class="flex flex-wrap items-center gap-3 justify-between">
             <div>
               <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="credit-card" class="w-5 h-5 text-magre-orange"></i>Meus Cartões de Crédito</h2>
-              <p class="text-xs text-magre-muted mt-1">Clique em um cartão para filtrar o extrato e pré-selecionar no lançamento.</p>
+              <p class="text-xs text-magre-muted mt-1">Fatura aberta, fatura a pagar e limite. Clique em um cartão para ver as compras dele no extrato.</p>
             </div>
-            <button data-toggle="cardForm" class="grad-orange text-black text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-glow hover:brightness-110 transition"><i data-lucide="plus" class="w-4 h-4"></i>Novo cartão</button>
+            <button id="cardNewBtn" class="grad-orange text-black text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-glow hover:brightness-110 transition"><i data-lucide="plus" class="w-4 h-4"></i>Novo cartão</button>
           </div>
 
-          <form id="cardForm" class="hidden mt-5 grid grid-cols-2 md:grid-cols-4 gap-3 p-4 rounded-2xl bg-black/20 border border-white/5 fade-in">
-            <div class="col-span-2 md:col-span-1"><label class="label">Banco</label><input class="input" name="banco" placeholder="Ex: Inter" required /></div>
-            <div><label class="label">Limite (R$)</label><input class="input" name="limite" type="number" min="1" step="0.01" placeholder="5000" required /></div>
-            <div><label class="label">Vencimento</label><input class="input" name="venc" type="number" min="1" max="31" placeholder="Dia 10" required /></div>
-            <div class="col-span-2 md:col-span-1 flex items-end"><button class="w-full grad-orange text-black font-bold text-sm py-3 rounded-xl">Adicionar</button></div>
+          <form id="cardForm" class="hidden mt-5 grid grid-cols-2 md:grid-cols-12 gap-3 p-4 rounded-2xl bg-black/20 border border-white/5 fade-in">
+            <input type="hidden" name="id" />
+            <div class="col-span-2 md:col-span-4"><label class="label">Banco</label><input class="input" name="banco" placeholder="Ex: Inter" required /></div>
+            <div class="col-span-2 md:col-span-3"><label class="label">Limite (R$)</label><input class="input" name="limite" type="number" min="1" step="0.01" placeholder="5000" required /></div>
+            <div class="md:col-span-2"><label class="label">Fecha dia</label><input class="input" name="fech" type="number" min="1" max="31" placeholder="10" required /></div>
+            <div class="md:col-span-2"><label class="label">Vence dia</label><input class="input" name="venc" type="number" min="1" max="31" placeholder="20" required /></div>
+            <div class="col-span-2 md:col-span-1 flex items-end"><button id="cardSubmit" class="w-full grad-orange text-black font-bold text-sm py-3 rounded-xl">OK</button></div>
+            <p class="col-span-2 md:col-span-12 text-[11px] text-magre-muted">Compras até o dia do fechamento entram na fatura daquele mês; depois disso, na fatura seguinte. Os dois dias aparecem no app do banco ou na própria fatura.</p>
           </form>
 
           <div id="cardsGrid" class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
@@ -370,6 +377,7 @@
             <div id="wrapOrigem" class="lg:col-span-4"><label class="label" for="fOrigem" id="fOrigemLabel">Origem</label><select id="fOrigem" name="origem" class="input"></select></div>
             <div id="wrapExtra" class="lg:col-span-4"><label class="label" for="fExtra" id="fExtraLabel">Destino</label><select id="fExtra" name="extra" class="input"></select></div>
             <div id="wrapForma" class="lg:col-span-4"><label class="label" for="fForma">Forma de pagamento</label><select id="fForma" name="forma" class="input"></select></div>
+            <div id="wrapParc" class="lg:col-span-4"><label class="label" for="fParc">Parcelas</label><select id="fParc" name="parc" class="input"></select></div>
           </div>
 
           <div class="flex flex-col md:flex-row md:items-center gap-4 justify-between pt-1">
@@ -387,7 +395,10 @@
               <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="receipt-text" class="w-5 h-5 text-magre-orange"></i>Últimas Movimentações</h2>
               <p class="text-xs text-magre-muted mt-1"><span id="txCount">0</span> lançamentos · <span id="filterLabel">Todas as origens</span></p>
             </div>
-            <select id="formaFilter" class="input input-sm w-auto" title="Filtrar por forma de pagamento"></select>
+            <div class="flex gap-2 flex-wrap">
+              <select id="faturaFilter" class="hidden input input-sm w-auto" title="Filtrar por fatura"></select>
+              <select id="formaFilter" class="input input-sm w-auto" title="Filtrar por forma de pagamento"></select>
+            </div>
           </div>
           <div class="flex gap-2 overflow-x-auto scrollbar-none pb-1" id="filters"></div>
         </div>
@@ -442,9 +453,9 @@
     <div class="mt-6 grid grid-cols-2 gap-4">
       <div class="col-span-2 sm:col-span-1"><label class="label" for="payValor">Valor pago (R$)</label><input id="payValor" class="input" type="number" min="0.01" step="0.01" placeholder="0,00" required /></div>
       <div class="col-span-2 sm:col-span-1"><label class="label" for="payData">Data do pagamento</label><input id="payData" class="input" type="date" required /></div>
-      <div class="col-span-2 sm:col-span-1"><label class="label" for="payOrigem">Pago com</label><select id="payOrigem" class="input"></select></div>
+      <div class="col-span-2 sm:col-span-1"><label class="label" for="payOrigem" id="payOrigemLabel">Pago com</label><select id="payOrigem" class="input"></select></div>
       <div class="col-span-2 sm:col-span-1" id="payFormaWrap"><label class="label" for="payForma">Forma</label><select id="payForma" class="input"></select></div>
-      <label class="col-span-2 flex items-start gap-2.5 text-xs text-magre-muted cursor-pointer select-none">
+      <label id="payUpdateWrap" class="col-span-2 flex items-start gap-2.5 text-xs text-magre-muted cursor-pointer select-none">
         <input type="checkbox" id="payUpdate" class="w-4 h-4 mt-0.5 accent-[#FF6A00]" />
         <span id="payUpdateLabel">Usar este valor como padrão nos próximos meses</span>
       </label>
@@ -523,7 +534,7 @@
    ========================================================= */
 const STORAGE_KEY = 'magrebank_demo_v1';
 const DIRTY_KEY = 'magrebank_pending_sync';
-const SCRIPT_VERSION_REQUIRED = 2;
+const SCRIPT_VERSION_REQUIRED = 3;
 const today = new Date();
 const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 const daysAgo = n => { const d = new Date(today); d.setDate(d.getDate() - n); return iso(d); };
@@ -531,6 +542,9 @@ const ym = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}
 const addMonths = (s, n) => { const [y, m] = s.split('-').map(Number); return ym(new Date(y, m - 1 + n, 1)); };
 const dueDate = (cycle, day) => { const [y, m] = cycle.split('-').map(Number); return new Date(y, m - 1, Math.min(day, new Date(y, m, 0).getDate())); };
 const fmtCycle = c => { const [y, m] = c.split('-'); return `${m}/${y}`; };
+const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const fmtMes = c => { const [y, m] = c.split('-'); return `${MESES[Number(m) - 1]}/${y.slice(2)}`; };
+const fmtDia = d => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 
 const BANK_TINTS = {
   nubank: 'rgba(138, 5, 190, .55)', santander: 'rgba(236, 0, 0, .45)', 'itaú': 'rgba(255, 120, 0, .45)', itau: 'rgba(255, 120, 0, .45)',
@@ -548,9 +562,10 @@ const CAT_TABS = [['receita', 'Receitas'], ['despesa', 'Despesas'], ['cartao', '
 const FORMAS = {
   receita: ['Pix', 'Transferência', 'Depósito', 'Dinheiro', 'Boleto', 'Outros'],
   despesa: ['Pix', 'Débito', 'Dinheiro', 'Boleto', 'Transferência', 'Outros'],
-  transferencia: ['Pix', 'TED', 'Saque', 'Depósito', 'Outros']
+  transferencia: ['Pix', 'TED', 'Saque', 'Depósito', 'Outros'],
+  fatura: ['Boleto', 'Débito automático', 'Pix', 'Transferência', 'Outros']
 };
-const ALL_FORMAS = [...new Set([...FORMAS.despesa, ...FORMAS.receita, ...FORMAS.transferencia])];
+const ALL_FORMAS = [...new Set([...FORMAS.despesa, ...FORMAS.receita, ...FORMAS.transferencia, ...FORMAS.fatura])];
 const ACC_TYPES = {
   corrente: { label: 'Conta Corrente', icon: 'landmark' },
   digital:  { label: 'Conta Digital', icon: 'smartphone' },
@@ -570,10 +585,10 @@ function seed() {
     ],
     categories: cloneCats(DEFAULT_CATS),
     cards: [
-      { id: 'c1', banco: 'Magre',     limite: 15000, venc: 10, bandeira: 'Visa Infinite', final: '4821' },
-      { id: 'c2', banco: 'Nubank',    limite: 8000,  venc: 7,  bandeira: 'Mastercard',    final: '1093' },
-      { id: 'c3', banco: 'Santander', limite: 6500,  venc: 15, bandeira: 'Visa',          final: '7740' },
-      { id: 'c4', banco: 'Itaú',      limite: 10000, venc: 22, bandeira: 'Mastercard Black', final: '3358' }
+      { id: 'c1', banco: 'Magre',     limite: 15000, fech: 3,  venc: 10, bandeira: 'Visa Infinite', final: '4821' },
+      { id: 'c2', banco: 'Nubank',    limite: 8000,  fech: 28, venc: 7,  bandeira: 'Mastercard',    final: '1093' },
+      { id: 'c3', banco: 'Santander', limite: 6500,  fech: 5,  venc: 15, bandeira: 'Visa',          final: '7740' },
+      { id: 'c4', banco: 'Itaú',      limite: 10000, fech: 15, venc: 22, bandeira: 'Mastercard Black', final: '3358' }
     ],
     goals: [
       { id: 'g1', nome: 'Reserva de Emergência', alvo: 30000, guardado: 18400, icone: 'shield-check' },
@@ -593,7 +608,8 @@ function seed() {
       { id: 't10', desc: 'Restaurante · jantar', valor: 268, data: daysAgo(10), tipo: 'cartao', cat: 'Lazer', origem: 'c2' },
       { id: 't11', desc: 'Saque para a carteira', valor: 200, data: daysAgo(3), tipo: 'transferencia', cat: 'Transferência', origem: 'a1', destino: 'a3', forma: 'Saque' },
       { id: 't12', desc: 'Feira de domingo', valor: 64.5, data: daysAgo(1), tipo: 'despesa', cat: 'Mercado', origem: 'a3', forma: 'Dinheiro' },
-      { id: 't13', desc: 'Pix para João (churrasco)', valor: 150, data: daysAgo(1), tipo: 'despesa', cat: 'Lazer', origem: 'a2', forma: 'Pix' }
+      { id: 't13', desc: 'Pix para João (churrasco)', valor: 150, data: daysAgo(1), tipo: 'despesa', cat: 'Lazer', origem: 'a2', forma: 'Pix' },
+      ...parcelar({ desc: 'Geladeira inox', valor: 3500, data: daysAgo(40), tipo: 'cartao', cat: 'Compras', origem: 'c4' }, 10, 'p1')
     ],
     bills: seedBills()
   };
@@ -636,6 +652,9 @@ function normalize(s) {
   } else {
     Object.keys(DEFAULT_CATS).forEach(k => { if (!(s.categories[k] || []).length) { s.categories[k] = [...DEFAULT_CATS[k]]; changed = true; } });
   }
+  s.cards.forEach(c => {
+    if (!c.fech) { const f = Number(c.venc) - 7; c.fech = Math.min(28, f < 1 ? f + 30 : f); c.fechEstimado = true; changed = true; }
+  });
   delete s.saldoInicial;
   return changed;
 }
@@ -643,7 +662,7 @@ function normalize(s) {
 let state;
 try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || seed(); } catch (e) { state = seed(); }
 normalize(state);
-let activeFilter = 'all', activeForma = 'all';
+let activeFilter = 'all', activeForma = 'all', activeFatura = 'all';
 
 const save = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} };
 const $ = s => document.querySelector(s);
@@ -656,7 +675,61 @@ const goalById = id => state.goals.find(g => g.id === id);
 const accById = id => state.accounts.find(a => a.id === id);
 const accName = id => (accById(id) || {}).nome || 'Conta removida';
 const accIcon = id => (ACC_TYPES[(accById(id) || {}).tipo] || ACC_TYPES.corrente).icon;
-const usedOf = id => state.tx.filter(t => t.tipo === 'cartao' && t.origem === id).reduce((s, t) => s + t.valor, 0);
+const r2 = v => Math.round(v * 100) / 100;
+const sumV = arr => r2(arr.reduce((s, t) => s + t.valor, 0));
+
+/* ---------- Faturas ----------
+   Cada fatura é identificada pelo mês em que FECHA ("2026-11" = fecha em novembro).
+   Compra até o dia do fechamento → fatura daquele mês; depois → fatura do mês seguinte. */
+function faturaBase(card, dataStr) {
+  const d = new Date(dataStr + 'T00:00'), c = ym(d);
+  return d <= dueDate(c, card.fech) ? c : addMonths(c, 1);
+}
+function txFatura(t) { const c = cardById(t.origem); return c ? addMonths(faturaBase(c, t.data), (t.parc || 1) - 1) : null; }
+function faturaDatas(card, C) {
+  const fecha = dueDate(C, card.fech);
+  const vence = dueDate(Number(card.venc) > Number(card.fech) ? C : addMonths(C, 1), card.venc);
+  const inicio = dueDate(addMonths(C, -1), card.fech); inicio.setDate(inicio.getDate() + 1);
+  return { inicio, fecha, vence };
+}
+const faturaAtual = card => faturaBase(card, iso(today));
+function faturaInfo(card, C) {
+  const compras = state.tx.filter(t => t.tipo === 'cartao' && t.origem === card.id && txFatura(t) === C);
+  const pagamentos = state.tx.filter(t => t.tipo === 'fatura' && t.cartao === card.id && t.ref === C);
+  const total = sumV(compras), pago = sumV(pagamentos), aberto = r2(Math.max(0, total - pago));
+  const { inicio, fecha, vence } = faturaDatas(card, C);
+  const hoje = startOfToday(), atual = faturaAtual(card);
+  let status;
+  if (total > 0 && aberto <= 0) status = 'paga';
+  else if (C === atual) status = 'aberta';
+  else if (C > atual) status = 'futura';
+  else if (total <= 0) status = 'vazia';
+  else status = vence < hoje ? 'atrasada' : 'fechada';
+  const diff = Math.round((vence - hoje) / 86400000);
+  return { card, C, total, pago, aberto, inicio, fecha, vence, status, diff, qtd: compras.length };
+}
+function cardFaturas(card) {
+  const ciclos = new Set([faturaAtual(card)]);
+  state.tx.forEach(t => {
+    if (t.tipo === 'cartao' && t.origem === card.id) ciclos.add(txFatura(t));
+    if (t.tipo === 'fatura' && t.cartao === card.id) ciclos.add(t.ref);
+  });
+  return [...ciclos].sort().map(C => faturaInfo(card, C));
+}
+const faturasAPagar = () => state.cards.flatMap(c => cardFaturas(c).filter(f => f.status === 'fechada' || f.status === 'atrasada'));
+// limite comprometido = todas as compras (inclusive parcelas futuras) − o que já foi pago de fatura
+const usedOf = id => r2(Math.max(0,
+  sumV(state.tx.filter(t => t.tipo === 'cartao' && t.origem === id)) -
+  sumV(state.tx.filter(t => t.tipo === 'fatura' && t.cartao === id))));
+
+function parcelar(base, n, grupo) {
+  if (n <= 1) return [{ ...base, id: base.id || uid('t') }];
+  const cents = Math.round(base.valor * 100), parte = Math.floor(cents / n);
+  return Array.from({ length: n }, (_, i) => ({
+    ...base, id: `${grupo}-${i + 1}`, grupo, parc: i + 1, parcN: n,
+    valor: (i === n - 1 ? cents - parte * (n - 1) : parte) / 100
+  }));
+}
 const icons = () => window.lucide && lucide.createIcons();
 const money = v => state.hidden ? 'R$ ••••••' : brl(v);
 const optList = (arr, sel) => arr.map(v => `<option${v === sel ? ' selected' : ''}>${escapeHtml(v)}</option>`).join('');
@@ -669,6 +742,7 @@ function accBalance(id) {
     if (t.tipo === 'receita' && t.origem === id) v += t.valor;
     else if (t.tipo === 'despesa' && t.origem === id) v -= t.valor;
     else if (t.tipo === 'aporte' && t.acc === id) v -= t.valor;
+    else if (t.tipo === 'fatura' && t.origem === id) v -= t.valor;
     else if (t.tipo === 'transferencia') { if (t.origem === id) v -= t.valor; if (t.destino === id) v += t.valor; }
   }
   return Math.round(v * 100) / 100;
@@ -687,9 +761,12 @@ function renderKPIs() {
 
   const saldo = state.accounts.reduce((s, a) => s + accBalance(a.id), 0);
   const recMes = state.tx.filter(t => t.tipo === 'receita' && inMonth(t));
-  const despMes = state.tx.filter(t => (t.tipo === 'despesa' || t.tipo === 'cartao') && inMonth(t));
-  const despConta = sum(despMes.filter(t => t.tipo === 'despesa'));
-  const despCartao = sum(despMes.filter(t => t.tipo === 'cartao'));
+  const despConta = sum(state.tx.filter(t => t.tipo === 'despesa' && inMonth(t)));
+  const porFatura = state.viewDesp === 'fatura';
+  const mesAtual = ym(today);
+  const despCartao = porFatura
+    ? r2(state.cards.flatMap(c => cardFaturas(c)).filter(f => ym(f.vence) === mesAtual).reduce((s, f) => s + f.total, 0))
+    : sum(state.tx.filter(t => t.tipo === 'cartao' && inMonth(t)));
   const limTotal = state.cards.reduce((s, c) => s + c.limite, 0);
   const limUsado = state.cards.reduce((s, c) => s + usedOf(c.id), 0);
   const pct = limTotal ? Math.min(100, (limUsado / limTotal) * 100) : 0;
@@ -701,7 +778,11 @@ function renderKPIs() {
   $('#kpiReceitas').textContent = money(sum(recMes));
   $('#kpiReceitasCount').textContent = `${recMes.length} ${recMes.length === 1 ? 'entrada' : 'entradas'} este mês`;
   $('#kpiDespesas').textContent = money(despConta + despCartao);
-  $('#kpiDespesasInfo').textContent = state.hidden ? 'Contas + cartões' : `Contas ${brl(despConta)} · Cartões ${brl(despCartao)}`;
+  $('#kpiDespesasInfo').textContent = state.hidden ? 'Contas + cartões' : `Contas ${brl(despConta)} · ${porFatura ? 'Faturas do mês' : 'Compras no cartão'} ${brl(despCartao)}`;
+  document.querySelectorAll('[data-desp-view]').forEach(b => {
+    const on = (b.dataset.despView === 'fatura') === porFatura;
+    b.classList.toggle('grad-orange', on); b.classList.toggle('text-black', on); b.classList.toggle('text-magre-muted', !on);
+  });
   $('#kpiLimite').textContent = money(limUsado);
   $('#kpiLimiteTotal').textContent = money(limTotal);
   $('#kpiLimitePct').textContent = pct.toFixed(1).replace('.', ',') + '%';
@@ -780,6 +861,7 @@ $('#accForm').addEventListener('submit', e => {
 });
 
 /* ---------- Cartões ---------- */
+const diasTxt = n => n === 0 ? 'hoje' : n === 1 ? 'amanhã' : `em ${n} dias`;
 function renderCards() {
   const grid = $('#cardsGrid');
   $('#cardsEmpty').classList.toggle('hidden', state.cards.length > 0);
@@ -788,47 +870,112 @@ function renderCards() {
     const disp = Math.max(0, c.limite - used);
     const pct = Math.min(100, (used / c.limite) * 100);
     const isMagre = c.banco.toLowerCase() === 'magre';
-    return `
-    <button type="button" data-card="${c.id}" class="bank-card ${activeFilter === c.id ? 'selected' : ''} text-left rounded-2xl p-5 bg-gradient-to-br from-[#0E0E0E] via-[#151515] to-[#1F1F1F] border border-white/10 shadow-soft hover:-translate-y-1 hover:border-white/20 transition duration-300 fade-in" style="--tint:${tintOf(c.banco)}">
-      <div class="relative flex items-start justify-between">
-        <div>
-          <p class="text-[10px] uppercase tracking-[.2em] text-magre-muted">Cartão</p>
-          <p class="text-base font-bold mt-0.5">${isMagre ? 'Magre <span class="text-grad">Bank</span>' : escapeHtml(c.banco)}</p>
+    const ab = faturaInfo(c, faturaAtual(c));
+    const fechaEm = Math.round((ab.fecha - startOfToday()) / 86400000);
+    const pagar = cardFaturas(c).filter(f => f.status === 'fechada' || f.status === 'atrasada');
+    const p0 = pagar[0];
+    const melhorDia = (Number(c.fech) % 31) + 1;
+    const blocoPagar = p0 ? `
+      <div class="relative mt-3 rounded-xl p-3 border ${p0.status === 'atrasada' ? 'bg-magre-red/10 border-magre-red/30' : 'bg-magre-orange/10 border-magre-orange/30'}">
+        <div class="flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <p class="text-[11px] font-semibold ${p0.status === 'atrasada' ? 'text-magre-red' : 'text-magre-orange2'}">Fatura ${fmtMes(p0.C)} fechada · ${p0.status === 'atrasada' ? `venceu ${fmtDia(p0.vence)}` : `vence ${diasTxt(p0.diff)} (${fmtDia(p0.vence)})`}</p>
+            <p class="text-base font-extrabold mt-0.5">${money(p0.aberto)}${pagar.length > 1 ? ` <span class="text-[10px] font-semibold text-magre-muted">+ ${pagar.length - 1} fatura(s)</span>` : ''}</p>
+          </div>
+          <button data-pay-fatura="${c.id}|${p0.C}" class="shrink-0 text-[11px] font-bold px-3 py-2 rounded-lg ${p0.status === 'atrasada' ? 'bg-magre-red text-black' : 'grad-orange text-black'}">Pagar</button>
         </div>
-        ${isMagre
-          ? `<div class="w-9 h-9">${$('#logoTpl').innerHTML}</div>`
-          : `<span class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-extrabold" style="background:${tintOf(c.banco)}">${escapeHtml(c.banco[0].toUpperCase())}</span>`}
+      </div>` : `
+      <p class="relative mt-3 text-[11px] text-magre-green flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>Nenhuma fatura fechada para pagar</p>`;
+    return `
+    <div role="button" tabindex="0" data-card="${c.id}" class="bank-card ${activeFilter === c.id ? 'selected' : ''} cursor-pointer text-left rounded-2xl p-5 bg-gradient-to-br from-[#0E0E0E] via-[#151515] to-[#1F1F1F] border border-white/10 shadow-soft hover:-translate-y-1 hover:border-white/20 transition duration-300 fade-in" style="--tint:${tintOf(c.banco)}">
+      <div class="relative flex items-start justify-between gap-2">
+        <div class="min-w-0">
+          <p class="text-[10px] uppercase tracking-[.2em] text-magre-muted">Cartão · •••• ${escapeHtml(c.final || '')}</p>
+          <p class="text-base font-bold mt-0.5 truncate">${isMagre ? 'Magre <span class="text-grad">Bank</span>' : escapeHtml(c.banco)}</p>
+        </div>
+        <div class="flex items-center gap-1 shrink-0">
+          <button data-card-edit="${c.id}" class="w-7 h-7 rounded-lg text-magre-muted hover:text-magre-orange hover:bg-white/5 flex items-center justify-center" title="Editar"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+          <button data-card-del="${c.id}" class="w-7 h-7 rounded-lg text-magre-muted hover:text-magre-red hover:bg-magre-red/10 flex items-center justify-center" title="Excluir"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          ${isMagre
+            ? `<div class="w-9 h-9 ml-1">${$('#logoTpl').innerHTML}</div>`
+            : `<span class="w-9 h-9 ml-1 rounded-xl flex items-center justify-center text-sm font-extrabold" style="background:${tintOf(c.banco)}">${escapeHtml(c.banco[0].toUpperCase())}</span>`}
+        </div>
       </div>
-      <div class="relative mt-5 flex items-center gap-3">
-        <div class="w-9 h-7 rounded-md bg-gradient-to-br from-[#d9b46a] to-[#8a6a2c] opacity-90 relative overflow-hidden"><div class="absolute inset-x-0 top-1/2 h-px bg-black/30"></div><div class="absolute inset-y-0 left-1/2 w-px bg-black/30"></div></div>
-        <i data-lucide="wifi" class="w-4 h-4 rotate-90 text-magre-muted"></i>
-        <p class="ml-auto text-xs tracking-[.25em] text-magre-light/80 font-medium">•••• ${escapeHtml(c.final || '')}</p>
+
+      <div class="relative mt-4">
+        <div class="flex justify-between text-[11px] text-magre-muted"><span>Fatura aberta · ${fmtMes(ab.C)}</span><span>fecha ${diasTxt(fechaEm)} (${fmtDia(ab.fecha)})</span></div>
+        <p class="text-xl font-extrabold mt-1">${money(ab.total)}</p>
+        <p class="text-[11px] text-magre-muted mt-0.5">Vence ${fmtDia(ab.vence)} · ${ab.qtd} ${ab.qtd === 1 ? 'lançamento' : 'lançamentos'}</p>
       </div>
-      <div class="relative mt-5">
-        <div class="flex justify-between text-[11px] text-magre-muted"><span>Disponível</span><span>${pct.toFixed(0)}% usado</span></div>
-        <p class="text-xl font-extrabold mt-1 ${disp === 0 ? 'text-magre-red' : ''}">${money(disp)}</p>
-        <div class="mt-2.5 h-1.5 rounded-full progress-track overflow-hidden"><div class="progress-fill h-full rounded-full" data-w="${pct}" style="width:0%"></div></div>
+      ${blocoPagar}
+
+      <div class="relative mt-4">
+        <div class="flex justify-between text-[11px] text-magre-muted"><span>Limite disponível</span><span>${pct.toFixed(0)}% usado</span></div>
+        <p class="text-sm font-bold mt-0.5 ${disp === 0 ? 'text-magre-red' : ''}">${money(disp)} <span class="text-[11px] font-medium text-magre-muted">de ${money(c.limite)}</span></p>
+        <div class="mt-2 h-1.5 rounded-full progress-track overflow-hidden"><div class="progress-fill h-full rounded-full" data-w="${pct}" style="width:0%"></div></div>
       </div>
-      <div class="relative mt-4 pt-3 border-t border-white/5 grid grid-cols-2 gap-2 text-[11px]">
-        <div><p class="text-magre-muted">Limite total</p><p class="font-semibold mt-0.5">${money(c.limite)}</p></div>
-        <div class="text-right"><p class="text-magre-muted">Vencimento</p><p class="font-semibold mt-0.5 text-magre-orange2">Dia ${String(c.venc).padStart(2, '0')}</p></div>
+      <div class="relative mt-4 pt-3 border-t border-white/5 grid grid-cols-3 gap-2 text-[11px]">
+        <div><p class="text-magre-muted">Fecha</p><p class="font-semibold mt-0.5">Dia ${String(c.fech).padStart(2, '0')}</p></div>
+        <div><p class="text-magre-muted">Vence</p><p class="font-semibold mt-0.5">Dia ${String(c.venc).padStart(2, '0')}</p></div>
+        <div class="text-right"><p class="text-magre-muted">Melhor dia</p><p class="font-semibold mt-0.5 text-magre-orange2">Dia ${String(melhorDia).padStart(2, '0')}</p></div>
       </div>
-      <p class="relative mt-3 text-[10px] uppercase tracking-widest text-magre-muted/70">${escapeHtml(c.bandeira || 'Crédito')}</p>
-    </button>`;
+      ${c.fechEstimado ? `<p class="relative mt-3 text-[10px] text-magre-orange2 flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3 h-3"></i>Dia de fechamento estimado. Confirme no lápis.</p>` : ''}
+    </div>`;
   }).join('');
 
-  grid.querySelectorAll('[data-card]').forEach(el => el.addEventListener('click', () => {
-    const id = el.dataset.card;
-    setFilter(activeFilter === id ? 'all' : id);
-    if (activeFilter === id) {
-      document.querySelector('input[name=tipo][value=cartao]').checked = true;
-      updateFormDynamic();
-      $('#fOrigem').value = id;
-      updatePreview();
-    }
+  grid.querySelectorAll('[data-card]').forEach(el => {
+    const go = () => {
+      const id = el.dataset.card;
+      setFilter(activeFilter === id ? 'all' : id);
+      if (activeFilter === id) {
+        document.querySelector('input[name=tipo][value=cartao]').checked = true;
+        updateFormDynamic();
+        $('#fOrigem').value = id;
+        updatePreview();
+      }
+    };
+    el.addEventListener('click', go);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target === el) go(); });
+  });
+  grid.querySelectorAll('[data-card-edit]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openCardForm(b.dataset.cardEdit); }));
+  grid.querySelectorAll('[data-card-del]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const c = cardById(b.dataset.cardDel);
+    if (state.tx.some(t => t.origem === c.id || t.cartao === c.id)) return toast(`O Cartão ${c.banco} tem lançamentos e não pode ser excluído.`, true);
+    if (!confirm(`Excluir o Cartão ${c.banco}?`)) return;
+    state.cards = state.cards.filter(x => x.id !== c.id);
+    if (activeFilter === c.id) activeFilter = 'all';
+    commit(); toast('Cartão excluído');
   }));
+  bindPayFatura(grid);
   animateBars(grid);
 }
+function bindPayFatura(root) {
+  root.querySelectorAll('[data-pay-fatura]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const [cid, C] = b.dataset.payFatura.split('|');
+    openPayFatura(cid, C);
+  }));
+}
+
+function openCardForm(id) {
+  const f = $('#cardForm'), c = id ? cardById(id) : null;
+  f.reset();
+  f.id.value = c ? c.id : '';
+  f.banco.value = c ? c.banco : '';
+  f.limite.value = c ? c.limite : '';
+  f.fech.value = c ? c.fech : '';
+  f.venc.value = c ? c.venc : '';
+  $('#cardSubmit').textContent = c ? 'Salvar' : 'OK';
+  f.classList.remove('hidden');
+  f.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  f.banco.focus();
+}
+$('#cardNewBtn').addEventListener('click', () => {
+  const f = $('#cardForm');
+  if (!f.classList.contains('hidden') && !f.id.value) { f.classList.add('hidden'); return; }
+  openCardForm(null);
+});
 
 /* ---------- Alvos ---------- */
 function renderGoals() {
@@ -891,10 +1038,34 @@ function statusPill(s) {
   return `<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white/5 text-magre-muted border border-white/10">Vence em ${s.diff} dias</span>`;
 }
 
+function faturaComoConta(f) {
+  const status = f.status === 'atrasada' ? 'vencida' : f.diff <= avisoDias() ? 'breve' : 'pendente';
+  return { f, s: { status, diff: f.diff, due: f.vence, atrasados: 1 } };
+}
+const nomeItem = i => i.b ? i.b.nome : `Fatura ${i.f.card.banco}`;
+
 function renderBills() {
-  const items = state.bills.map(b => ({ b, s: billStatus(b) })).sort((x, y) => x.s.due - y.s.due);
+  const items = [...state.bills.map(b => ({ b, s: billStatus(b) })), ...faturasAPagar().map(faturaComoConta)].sort((x, y) => x.s.due - y.s.due);
   $('#billsEmpty').classList.toggle('hidden', items.length > 0);
-  $('#billsGrid').innerHTML = items.map(({ b, s }) => {
+  $('#billsGrid').innerHTML = items.map(({ b, f, s }) => {
+    if (f) return `
+    <div class="rounded-2xl p-4 bg-black/20 border ${s.status === 'vencida' ? 'border-magre-red/40' : s.status === 'breve' ? 'border-magre-orange/40' : 'border-white/5'} transition fade-in flex flex-col">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-xl ${s.status === 'vencida' ? 'bg-magre-red/15 text-magre-red' : 'bg-magre-orange/10 text-magre-orange'} flex items-center justify-center shrink-0"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-semibold truncate">Fatura ${escapeHtml(f.card.banco)} · ${fmtMes(f.C)}</p>
+          <p class="text-[11px] text-magre-muted">Compras de ${fmtDia(f.inicio)} a ${fmtDia(f.fecha)} · ${f.qtd} ${f.qtd === 1 ? 'lançamento' : 'lançamentos'}</p>
+        </div>
+      </div>
+      <div class="mt-4 flex items-end justify-between gap-2">
+        <div>
+          <p class="text-[11px] text-magre-muted">Vencimento · ${f.vence.toLocaleDateString('pt-BR')}</p>
+          <p class="text-lg font-extrabold mt-0.5">${money(f.aberto)}${f.pago > 0 ? ` <span class="text-[11px] font-medium text-magre-muted">(pago ${money(f.pago)})</span>` : ''}</p>
+        </div>
+        ${statusPill(s)}
+      </div>
+      <button data-pay-fatura="${f.card.id}|${f.C}" class="mt-4 w-full text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 grad-orange text-black hover:brightness-110"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Pagar fatura</button>
+    </div>`;
     const ring = s.status === 'vencida' ? 'border-magre-red/40' : s.status === 'breve' ? 'border-magre-orange/40' : 'border-white/5';
     const iconBg = s.status === 'vencida' ? 'bg-magre-red/15 text-magre-red' : s.status === 'paga' ? 'bg-magre-green/10 text-magre-green' : 'bg-magre-orange/10 text-magre-orange';
     return `
@@ -920,6 +1091,7 @@ function renderBills() {
     </div>`;
   }).join('');
   document.querySelectorAll('[data-bill-pay]').forEach(btn => btn.addEventListener('click', () => openPay(btn.dataset.billPay)));
+  bindPayFatura($('#billsGrid'));
   document.querySelectorAll('[data-bill-del]').forEach(btn => btn.addEventListener('click', () => {
     const b = state.bills.find(x => x.id === btn.dataset.billDel);
     if (!confirm(`Excluir a conta "${b.nome}"? Os pagamentos já lançados continuam no extrato.`)) return;
@@ -939,7 +1111,7 @@ function renderBillAlert(items) {
   const box = $('#billAlert');
   if (!n || alertDismissed) { box.className = 'hidden'; box.innerHTML = ''; return; }
   const red = venc.length > 0;
-  const nomes = (red ? venc : breve).map(i => escapeHtml(i.b.nome)).join(', ');
+  const nomes = (red ? venc : breve).map(i => escapeHtml(nomeItem(i))).join(', ');
   const titulo = red
     ? `${venc.length} ${venc.length === 1 ? 'conta vencida' : 'contas vencidas'} sem pagamento`
     : `${breve.length} ${breve.length === 1 ? 'conta vence' : 'contas vencem'} nos próximos ${avisoDias()} dias`;
@@ -960,6 +1132,7 @@ function renderBillAlert(items) {
   $('#billAlertClose').addEventListener('click', () => { alertDismissed = true; box.className = 'hidden'; box.innerHTML = ''; });
 }
 
+let payMode = 'bill', payFatura = null;
 function payFormaDefault() {
   const a = accById($('#payOrigem').value);
   return a && a.tipo === 'carteira' ? 'Dinheiro' : 'Boleto';
@@ -969,10 +1142,30 @@ function updatePayForma() {
   $('#payFormaWrap').classList.toggle('hidden', isCard);
   $('#payForma').value = payFormaDefault();
 }
+function openPayFatura(cardId, C) {
+  const card = cardById(cardId); if (!card) return;
+  const f = faturaInfo(card, C);
+  payMode = 'fatura'; payFatura = { cardId, C }; payingId = null;
+  $('#payIcon').innerHTML = `<i data-lucide="credit-card" class="w-5 h-5 text-black"></i>`;
+  $('#payTitle').textContent = `Pagar fatura ${card.banco}`;
+  $('#paySub').textContent = `Fatura ${fmtMes(C)} · compras de ${fmtDia(f.inicio)} a ${fmtDia(f.fecha)} · vence ${f.vence.toLocaleDateString('pt-BR')}`;
+  $('#payValor').value = f.aberto || f.total || '';
+  $('#payData').value = iso(today);
+  $('#payOrigemLabel').textContent = 'Pago com (conta)';
+  $('#payOrigem').innerHTML = accOptions();
+  $('#payForma').innerHTML = optList(FORMAS.fatura);
+  $('#payFormaWrap').classList.remove('hidden');
+  $('#payForma').value = 'Boleto';
+  $('#payUpdateWrap').classList.add('hidden');
+  openModal('payModal');
+  setTimeout(() => $('#payValor').focus(), 50);
+}
 function openPay(id) {
   const b = state.bills.find(x => x.id === id); if (!b) return;
   const s = billStatus(b);
-  payingId = id;
+  payingId = id; payMode = 'bill'; payFatura = null;
+  $('#payOrigemLabel').textContent = 'Pago com';
+  $('#payUpdateWrap').classList.remove('hidden');
   $('#payIcon').innerHTML = `<i data-lucide="${BILL_ICONS[b.cat] || 'receipt'}" class="w-5 h-5 text-black"></i>`;
   $('#payTitle').textContent = 'Pagar ' + b.nome;
   $('#paySub').textContent = `Referência ${fmtCycle(s.cycle)} · vencimento ${s.due.toLocaleDateString('pt-BR')}`;
@@ -988,10 +1181,20 @@ function openPay(id) {
   openModal('payModal');
   setTimeout(() => $('#payValor').focus(), 50);
 }
-$('#payOrigem').addEventListener('change', updatePayForma);
+$('#payOrigem').addEventListener('change', () => { if (payMode === 'bill') updatePayForma(); });
 
 $('#payForm').addEventListener('submit', e => {
   e.preventDefault();
+  if (payMode === 'fatura') {
+    const card = cardById(payFatura.cardId), C = payFatura.C;
+    const valor = parseFloat($('#payValor').value), origem = $('#payOrigem').value;
+    if (!valor || valor <= 0) return toast('Informe o valor pago', true);
+    addTx({ desc: `Pagamento fatura ${card.banco} ${fmtMes(C)}`, valor, data: $('#payData').value, tipo: 'fatura', cat: 'Fatura de cartão', origem, cartao: card.id, ref: C, forma: $('#payForma').value });
+    const f = faturaInfo(card, C);
+    closeModals();
+    toast(f.aberto > 0 ? `Pagamento registrado · ainda faltam ${brl(f.aberto)} nesta fatura` : `Fatura ${card.banco} ${fmtMes(C)} paga · limite liberado`);
+    return;
+  }
   const b = state.bills.find(x => x.id === payingId); if (!b) return closeModals();
   const s = billStatus(b);
   const valor = parseFloat($('#payValor').value);
@@ -1030,22 +1233,27 @@ const withForma = (name, forma) => escapeHtml(name) + (forma ? ` · ${escapeHtml
 function originBadge(t) {
   if (t.tipo === 'receita') return badge('bg-magre-green/10 text-magre-green border border-magre-green/20', accIcon(t.origem), withForma(accName(t.origem), t.forma));
   if (t.tipo === 'despesa') return badge('bg-magre-red/10 text-magre-red border border-magre-red/20', accIcon(t.origem), withForma(accName(t.origem), t.forma));
-  if (t.tipo === 'cartao') { const c = cardById(t.origem); return badge('grad-orange text-black', 'credit-card', escapeHtml(c ? 'Cartão ' + c.banco : 'Cartão removido')); }
+  if (t.tipo === 'cartao') { const c = cardById(t.origem); return badge('grad-orange text-black', 'credit-card', escapeHtml(c ? `Cartão ${c.banco} · fatura ${fmtMes(txFatura(t))}` : 'Cartão removido')); }
+  if (t.tipo === 'fatura') { const c = cardById(t.cartao); return badge('bg-white/5 text-magre-light border border-white/15', 'receipt', withForma(accName(t.origem), t.forma) + escapeHtml(` → Fatura ${c ? c.banco : ''} ${fmtMes(t.ref)}`)); }
   if (t.tipo === 'transferencia') return badge('bg-magre-blue/10 text-magre-blue border border-magre-blue/25', 'arrow-left-right', withForma(`${accName(t.origem)} → ${accName(t.destino)}`, t.forma));
   const g = goalById(t.origem);
   return badge('bg-magre-orange/10 text-magre-orange2 border border-magre-orange/30', 'piggy-bank', escapeHtml((g ? g.nome : 'Aporte') + (t.acc ? ' · de ' + accName(t.acc) : '')));
 }
-const txIcon = t => ({ receita: 'arrow-down-left', despesa: 'arrow-up-right', cartao: 'credit-card', aporte: 'piggy-bank', transferencia: 'arrow-left-right' })[t.tipo];
-const txColor = t => ({ receita: 'text-magre-green', aporte: 'text-magre-orange2', transferencia: 'text-magre-blue' })[t.tipo] || 'text-magre-red';
+const txIcon = t => ({ receita: 'arrow-down-left', despesa: 'arrow-up-right', cartao: 'credit-card', aporte: 'piggy-bank', transferencia: 'arrow-left-right', fatura: 'receipt' })[t.tipo];
+const txColor = t => ({ receita: 'text-magre-green', aporte: 'text-magre-orange2', transferencia: 'text-magre-blue', fatura: 'text-magre-light' })[t.tipo] || 'text-magre-red';
+const txDesc = t => escapeHtml(t.desc) + (t.parcN > 1 ? ` <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-magre-orange/15 text-magre-orange2 align-middle">${t.parc}/${t.parcN}</span>` : '');
 const txAmount = t => state.hidden ? '••••' : (t.tipo === 'receita' ? '+ ' : t.tipo === 'transferencia' ? '' : '− ') + brl(t.valor);
 
-const TYPE_FILTERS = [['all', 'Todas'], ['receita', 'Receitas'], ['despesa', 'Despesas'], ['cartao', 'Cartões'], ['transferencia', 'Transferências'], ['aporte', 'Aportes']];
+const TYPE_FILTERS = [['all', 'Todas'], ['receita', 'Receitas'], ['despesa', 'Despesas'], ['cartao', 'Cartões'], ['fatura', 'Pag. de faturas'], ['transferencia', 'Transferências'], ['aporte', 'Aportes']];
 function filteredTx() {
-  let list = [...state.tx].sort((a, b) => b.data.localeCompare(a.data) || b.id.localeCompare(a.id));
+  let list = [...state.tx].sort((a, b) => b.data.localeCompare(a.data) || (a.grupo && a.grupo === b.grupo ? a.parc - b.parc : b.id.localeCompare(a.id)));
   const f = activeFilter;
   if (TYPE_FILTERS.some(([k]) => k === f) && f !== 'all') list = list.filter(t => t.tipo === f);
   else if (accById(f)) list = list.filter(t => t.origem === f || t.destino === f || t.acc === f);
-  else if (cardById(f)) list = list.filter(t => t.tipo === 'cartao' && t.origem === f);
+  else if (cardById(f)) {
+    list = list.filter(t => (t.tipo === 'cartao' && t.origem === f) || (t.tipo === 'fatura' && t.cartao === f));
+    if (activeFatura !== 'all') list = list.filter(t => (t.tipo === 'cartao' ? txFatura(t) : t.ref) === activeFatura);
+  }
   if (activeForma !== 'all') list = list.filter(t => activeForma === 'Crédito' ? t.tipo === 'cartao' : t.forma === activeForma);
   return list;
 }
@@ -1062,10 +1270,20 @@ function renderFilters() {
   const usadas = new Set(state.tx.map(t => t.tipo === 'cartao' ? 'Crédito' : t.forma).filter(Boolean));
   const formas = [...ALL_FORMAS, 'Crédito'].filter(f => usadas.has(f) || f === activeForma);
   $('#formaFilter').innerHTML = `<option value="all">Todas as formas</option>` + formas.map(f => `<option${f === activeForma ? ' selected' : ''}>${f}</option>`).join('');
+  const card = cardById(activeFilter);
+  $('#faturaFilter').classList.toggle('hidden', !card);
+  if (card) {
+    const rot = { aberta: 'aberta', fechada: 'a pagar', atrasada: 'atrasada', paga: 'paga', futura: 'futura' };
+    const todas = cardFaturas(card).filter(x => x.status !== 'vazia');
+    const ordem = { aberta: 0, atrasada: 1, fechada: 1, paga: 2, futura: 3 };
+    const fats = todas.sort((x, y) => ordem[x.status] - ordem[y.status] || (x.status === 'futura' ? x.C.localeCompare(y.C) : y.C.localeCompare(x.C)));
+    $('#faturaFilter').innerHTML = `<option value="all">Todas as faturas</option>` + fats.map(x => `<option value="${x.C}"${x.C === activeFatura ? ' selected' : ''}>Fatura ${fmtMes(x.C)} · ${rot[x.status]} · ${brl(x.total)}</option>`).join('');
+  }
   const cur = opts.find(o => o.id === activeFilter);
   $('#filterLabel').textContent = (activeFilter === 'all' ? 'Todas as origens' : 'Filtro: ' + cur.label) + (activeForma !== 'all' ? ` · ${activeForma}` : '');
 }
 $('#formaFilter').addEventListener('change', e => { activeForma = e.target.value; renderFilters(); renderTx(); icons(); });
+$('#faturaFilter').addEventListener('change', e => { activeFatura = e.target.value; renderFilters(); renderTx(); icons(); });
 
 function renderTx() {
   const list = filteredTx();
@@ -1077,7 +1295,7 @@ function renderTx() {
       <td class="py-3.5 pr-4">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center shrink-0 ${txColor(t)}"><i data-lucide="${txIcon(t)}" class="w-4 h-4"></i></div>
-          <span class="font-medium">${escapeHtml(t.desc)}</span>
+          <span class="font-medium">${txDesc(t)}</span>
         </div>
       </td>
       <td class="py-3.5 pr-4 text-magre-muted">${escapeHtml(t.cat)}</td>
@@ -1091,7 +1309,7 @@ function renderTx() {
     <li class="rounded-2xl p-3.5 bg-black/20 border border-white/5 flex items-center gap-3 fade-in">
       <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 ${txColor(t)}"><i data-lucide="${txIcon(t)}" class="w-4 h-4"></i></div>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-semibold truncate">${escapeHtml(t.desc)}</p>
+        <p class="text-sm font-semibold truncate">${txDesc(t)}</p>
         <p class="text-[11px] text-magre-muted mb-1.5">${fmtDate(t.data)} · ${escapeHtml(t.cat)}</p>
         ${originBadge(t)}
       </div>
@@ -1123,6 +1341,7 @@ function updateFormDynamic() {
   show('#wrapCat', tipo !== 'transferencia');
   show('#wrapExtra', tipo === 'aporte' || tipo === 'transferencia');
   show('#wrapForma', tipo === 'receita' || tipo === 'despesa' || tipo === 'transferencia');
+  show('#wrapParc', tipo === 'cartao');
 
   if (tipo !== 'transferencia') {
     const cats = state.categories[tipo] || [];
@@ -1169,7 +1388,14 @@ function updatePreview() {
   let html = '';
   if (tipo === 'cartao') {
     const c = cardById(o);
-    if (c) { const r = c.limite - usedOf(c.id) - v; html = `<i data-lucide="info" class="w-4 h-4 text-magre-orange"></i>Limite disponível no Cartão ${escapeHtml(c.banco)} após a compra: <b class="${r < 0 ? 'text-magre-red' : 'text-magre-light'}">${brl(r)}</b>${r < 0 ? ' · excede o limite' : ''}`; }
+    if (c) {
+      const n = Number($('#fParc').value) || 1, C0 = faturaBase(c, $('#fData').value || iso(today));
+      const r = c.limite - usedOf(c.id) - v;
+      const onde = n > 1
+        ? `${n}x de <b class="text-magre-light">${brl(v / n)}</b> · faturas ${fmtMes(C0)} a ${fmtMes(addMonths(C0, n - 1))}`
+        : `Cai na fatura de <b class="text-magre-light">${fmtMes(C0)}</b> · vence ${fmtDia(faturaDatas(c, C0).vence)}`;
+      html = `<i data-lucide="credit-card" class="w-4 h-4 text-magre-orange"></i>${onde} · limite após: <b class="${r < 0 ? 'text-magre-red' : 'text-magre-light'}">${brl(r)}</b>`;
+    }
   } else if (tipo === 'aporte') {
     const g = goalById(o);
     if (g && accById(x)) html = `<i data-lucide="target" class="w-4 h-4 text-magre-orange"></i>"${escapeHtml(g.nome)}" vai para <b class="text-magre-light">${Math.min(100, ((g.guardado + v) / g.alvo) * 100).toFixed(1).replace('.', ',')}%</b> · saldo de ${escapeHtml(accName(x))}: ${after(x, -v)}`;
@@ -1200,6 +1426,9 @@ $('#fExtra').addEventListener('change', () => {
 });
 $('#fForma').addEventListener('change', () => { $('#fForma').dataset.touched = '1'; });
 $('#fValor').addEventListener('input', updatePreview);
+$('#fData').addEventListener('change', updatePreview);
+$('#fParc').innerHTML = Array.from({ length: 24 }, (_, i) => `<option value="${i + 1}">${i === 0 ? 'À vista (1x)' : `${i + 1}x`}</option>`).join('');
+$('#fParc').addEventListener('change', updatePreview);
 $('#fData').value = iso(today);
 
 $('#txForm').addEventListener('submit', e => {
@@ -1220,15 +1449,17 @@ $('#txForm').addEventListener('submit', e => {
     if (tipo === 'aporte') { if (!extra) return toast('Escolha de qual conta sai o aporte', true); t.acc = extra; }
     if (tipo === 'cartao') { const c = cardById(origem); if (valor > c.limite - usedOf(c.id)) return toast(`Limite insuficiente no Cartão ${c.banco}`, true); }
   }
-  addTx(t);
+  const nParc = tipo === 'cartao' ? Number($('#fParc').value) || 1 : 1;
+  if (nParc > 1) { parcelar(t, nParc, uid('p')).forEach(x => state.tx.push(x)); commit(); }
+  else addTx(t);
 
   const labels = {
     receita: `Receita em ${accName(origem)}`, despesa: `Despesa em ${accName(origem)}`,
-    cartao: 'Compra no Cartão ' + (cardById(origem)?.banco || ''), aporte: 'Aporte realizado',
+    cartao: 'Compra no Cartão ' + (cardById(origem)?.banco || '') + (nParc > 1 ? ` em ${nParc}x` : ''), aporte: 'Aporte realizado',
     transferencia: `Transferência ${accName(origem)} → ${accName(extra)}`
   };
   toast(`${labels[tipo]} · ${brl(valor)}`);
-  $('#fDesc').value = ''; $('#fValor').value = ''; $('#fData').value = iso(today);
+  $('#fDesc').value = ''; $('#fValor').value = ''; $('#fData').value = iso(today); $('#fParc').value = '1';
   updatePreview();
 });
 
@@ -1317,6 +1548,13 @@ function addTx(t) {
 function removeTx(id) {
   const t = state.tx.find(x => x.id === id);
   if (!t) return;
+  if (t.grupo) {
+    const grupo = state.tx.filter(x => x.grupo === t.grupo);
+    if (!confirm(`"${t.desc}" é uma compra parcelada. Excluir as ${grupo.length} parcelas?`)) return;
+    state.tx = state.tx.filter(x => x.grupo !== t.grupo);
+    commit(); toast(`${grupo.length} parcelas removidas`);
+    return;
+  }
   if (t.tipo === 'aporte') { const g = goalById(t.origem); if (g) g.guardado = Math.max(0, g.guardado - t.valor); }
   if (t.conta && t.ref) {
     const b = state.bills.find(x => x.id === t.conta);
@@ -1326,7 +1564,7 @@ function removeTx(id) {
   commit();
   toast('Lançamento removido');
 }
-function setFilter(f) { activeFilter = f; renderAccounts(); renderCards(); renderFilters(); renderTx(); icons(); }
+function setFilter(f) { if (f !== activeFilter) activeFatura = 'all'; activeFilter = f; renderAccounts(); renderCards(); renderFilters(); renderTx(); icons(); }
 
 function commit() { save(); markDirty(true); renderAll(); schedulePush(); }
 
@@ -1347,11 +1585,15 @@ document.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('clic
 
 $('#cardForm').addEventListener('submit', e => {
   e.preventDefault();
-  const fd = new FormData(e.target);
-  const banco = fd.get('banco').trim();
-  state.cards.push({ id: uid('c'), banco, limite: parseFloat(fd.get('limite')), venc: parseInt(fd.get('venc')), bandeira: 'Crédito', final: String(Math.floor(1000 + Math.random() * 9000)) });
-  e.target.reset(); e.target.classList.add('hidden');
-  commit(); toast(`Cartão ${banco} adicionado`);
+  const f = e.target;
+  const banco = f.banco.value.trim();
+  const dia = v => Math.min(31, Math.max(1, parseInt(v)));
+  const dados = { banco, limite: parseFloat(f.limite.value), fech: dia(f.fech.value), venc: dia(f.venc.value), fechEstimado: false };
+  const editado = !!f.id.value;
+  if (editado) Object.assign(cardById(f.id.value), dados);
+  else state.cards.push({ id: uid('c'), ...dados, bandeira: 'Crédito', final: String(Math.floor(1000 + Math.random() * 9000)) });
+  f.reset(); f.classList.add('hidden');
+  commit(); toast(editado ? `Cartão ${banco} atualizado` : `Cartão ${banco} adicionado`);
 });
 
 $('#goalForm').addEventListener('submit', e => {
@@ -1364,6 +1606,7 @@ $('#goalForm').addEventListener('submit', e => {
 });
 
 $('#toggleEye').addEventListener('click', () => { state.hidden = !state.hidden; save(); renderAll(); });
+document.querySelectorAll('[data-desp-view]').forEach(b => b.addEventListener('click', () => { state.viewDesp = b.dataset.despView; save(); renderKPIs(); }));
 $('#resetBtn').addEventListener('click', () => {
   if (connected() && !confirm('Isso vai substituir os dados da sua planilha pelos dados de exemplo. Continuar?')) return;
   state = seed(); activeFilter = 'all'; activeForma = 'all'; commit(); toast('Dados de exemplo restaurados');
@@ -1374,7 +1617,7 @@ document.querySelectorAll('[data-wipe]').forEach(btn => btn.addEventListener('cl
     : 'Apagar todos os dados de exemplo e começar com o site vazio?';
   if (!confirm(msg)) return;
   state = {
-    hidden: state.hidden, diasAviso: state.diasAviso, categories: state.categories,
+    hidden: state.hidden, viewDesp: state.viewDesp, diasAviso: state.diasAviso, categories: state.categories,
     accounts: [{ id: uid('a'), nome: 'Conta Principal', tipo: 'corrente', saldoInicial: 0 }],
     cards: [], goals: [], tx: [], bills: []
   };
@@ -1426,7 +1669,7 @@ function renderScriptAlert() {
     <div class="w-10 h-10 rounded-xl bg-magre-red flex items-center justify-center shrink-0"><i data-lucide="file-warning" class="w-5 h-5 text-black"></i></div>
     <div>
       <p class="text-sm font-bold text-magre-red">Atualize o script da planilha</p>
-      <p class="text-xs text-magre-muted mt-0.5 leading-relaxed">Esta versão do site usa contas bancárias e categorias, que o script atual da planilha não guarda. Cole o novo Code.gs e publique uma nova versão da implantação. Até lá, seus lançamentos ficam salvos neste navegador e serão enviados assim que o script for atualizado.</p>
+      <p class="text-xs text-magre-muted mt-0.5 leading-relaxed">Esta versão do site tem recursos novos (contas bancárias, categorias, faturas e parcelas) que o script atual da planilha não guarda. Cole o novo Code.gs e publique uma nova versão da implantação. Até lá, seus lançamentos ficam salvos neste navegador e serão enviados assim que o script for atualizado.</p>
     </div>`;
   icons();
 }
@@ -1438,7 +1681,13 @@ async function api(action, data, c = cfg) {
   if (!j.ok) throw new Error(j.error || 'Erro desconhecido');
   return j;
 }
-const payload = () => ({ accounts: state.accounts, categories: state.categories, cards: state.cards, goals: state.goals, tx: state.tx, bills: state.bills });
+const payload = () => ({
+  accounts: state.accounts, categories: state.categories, cards: state.cards, goals: state.goals, bills: state.bills,
+  tx: state.tx.map(t => t.tipo === 'cartao' ? { ...t, fatura: txFatura(t) } : t),
+  faturas: state.cards.flatMap(c => cardFaturas(c).filter(f => f.status !== 'vazia').map(f => ({
+    cartaoId: c.id, banco: c.banco, ciclo: f.C, inicio: iso(f.inicio), fechamento: iso(f.fecha), vencimento: iso(f.vence), total: f.total, pago: f.pago
+  })))
+});
 
 async function pushNow() {
   await api('save', payload());
@@ -1447,7 +1696,7 @@ async function pushNow() {
 }
 
 // A planilha é a fonte principal: contas e categorias vêm dela (se não existirem, normalize() recria a partir dos dados)
-const fromSheet = data => ({ ...state, ...data, accounts: data.accounts, categories: data.categories, hidden: state.hidden });
+const fromSheet = data => ({ ...state, ...data, accounts: data.accounts, categories: data.categories, hidden: state.hidden, viewDesp: state.viewDesp });
 
 async function pullFromSheet(primeiraConexao = false) {
   if (!connected()) { setSync('local'); openSettings(); return; }
