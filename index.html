@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Magre Bank · Controle Financeiro</title>
+
+  <!-- Fonte Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            magre: {
+              bg: '#1A1A1A',
+              card: '#242424',
+              line: '#2E2E2E',
+              orange: '#FF6A00',
+              orange2: '#FF8C00',
+              light: '#F5F5F5',
+              muted: '#9A9A9A',
+              green: '#3DDC97',
+              red: '#FF5C5C'
+            }
+          },
+          fontFamily: { sans: ['Montserrat', 'sans-serif'] },
+          boxShadow: {
+            glow: '0 10px 40px -10px rgba(255,106,0,.45)',
+            soft: '0 20px 50px -20px rgba(0,0,0,.8)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Ícones Lucide -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #1A1A1A; --card: #242424; --orange: #FF6A00; --orange2: #FF8C00; --light: #F5F5F5;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg);
+      color: var(--light);
+      background-image:
+        radial-gradient(900px 500px at 85% -10%, rgba(255,106,0,.10), transparent 60%),
+        radial-gradient(700px 400px at -10% 110%, rgba(255,140,0,.06), transparent 60%);
+      background-attachment: fixed;
+    }
+    .grad-orange { background: linear-gradient(135deg, var(--orange) 0%, var(--orange2) 100%); }
+    .text-grad { background: linear-gradient(135deg, var(--orange), var(--orange2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .glass {
+      background: linear-gradient(160deg, rgba(255,255,255,.055), rgba(255,255,255,.015));
+      border: 1px solid rgba(255,255,255,.07);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    }
+    .panel { background: #242424; border: 1px solid #2E2E2E; }
+    .progress-track { background: rgba(255,255,255,.07); }
+    .progress-fill {
+      background: linear-gradient(90deg, var(--orange), var(--orange2));
+      box-shadow: 0 0 14px rgba(255,106,0,.55);
+      transition: width .9s cubic-bezier(.22,1,.36,1);
+      position: relative; overflow: hidden;
+    }
+    .progress-fill::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+      transform: translateX(-100%); animation: shine 2.6s infinite;
+    }
+    @keyframes shine { to { transform: translateX(100%); } }
+    .input {
+      width: 100%; background: #1C1C1C; border: 1px solid #333; border-radius: .9rem;
+      padding: .8rem 1rem; color: #F5F5F5; font-size: .9rem; outline: none; transition: border-color .2s, box-shadow .2s;
+    }
+    .input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,106,0,.18); }
+    .input::placeholder { color: #6b6b6b; }
+    select.input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23FF8C00' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
+    input[type=date].input::-webkit-calendar-picker-indicator { filter: invert(.6) sepia(1) saturate(5) hue-rotate(-10deg); cursor: pointer; }
+    .label { font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #9A9A9A; margin-bottom: .45rem; display: block; }
+    .type-chip input:checked + span { background: linear-gradient(135deg, var(--orange), var(--orange2)); color: #111; border-color: transparent; box-shadow: 0 8px 24px -8px rgba(255,106,0,.6); }
+    .nav-link.active { background: linear-gradient(90deg, rgba(255,106,0,.18), rgba(255,106,0,0)); color: #F5F5F5; }
+    .nav-link.active::before { content: ''; position: absolute; left: 0; top: 18%; bottom: 18%; width: 3px; border-radius: 3px; background: linear-gradient(var(--orange), var(--orange2)); }
+    .bank-card { position: relative; overflow: hidden; }
+    .bank-card::before {
+      content: ''; position: absolute; width: 220px; height: 220px; right: -70px; top: -90px; border-radius: 50%;
+      background: radial-gradient(circle, var(--tint, rgba(255,106,0,.35)), transparent 70%);
+    }
+    .bank-card.selected { outline: 2px solid var(--orange); outline-offset: 3px; }
+    .scrollbar-none::-webkit-scrollbar { display: none; }
+    .scrollbar-none { scrollbar-width: none; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 8px; }
+    .fade-in { animation: fadeIn .5s ease both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .pulse-dot { animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(61,220,151,.6); } 70% { box-shadow: 0 0 0 8px rgba(61,220,151,0); } 100% { box-shadow: 0 0 0 0 rgba(61,220,151,0); } }
+    .toast { transition: all .35s cubic-bezier(.22,1,.36,1); }
+  </style>
+</head>
+
+<body class="min-h-screen antialiased">
+<div class="flex min-h-screen">
+
+  <!-- ===================== SIDEBAR (Desktop) ===================== -->
+  <aside class="hidden lg:flex w-72 shrink-0 flex-col border-r border-white/5 bg-[#161616]/80 backdrop-blur-xl sticky top-0 h-screen px-6 py-8">
+    <div class="flex items-center gap-3">
+      <div class="logo-m w-12 h-12"></div>
+      <div>
+        <p class="text-lg font-extrabold tracking-wide leading-none">MAGRE <span class="text-grad">BANK</span></p>
+        <p class="text-[11px] text-magre-muted mt-1.5 font-medium tracking-wide">Seu banco. Mais possibilidades.</p>
+      </div>
+    </div>
+
+    <nav class="mt-12 flex flex-col gap-1.5" id="sideNav">
+      <p class="text-[10px] font-semibold tracking-[.2em] text-magre-muted/70 uppercase mb-2 px-4">Menu</p>
+      <a href="#dashboard" class="nav-link active relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="layout-dashboard" class="w-5 h-5"></i>Dashboard</a>
+      <a href="#cartoes" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="credit-card" class="w-5 h-5"></i>Meus Cartões</a>
+      <a href="#alvos" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="target" class="w-5 h-5"></i>Metas &amp; Alvos</a>
+      <a href="#lancamentos" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="rocket" class="w-5 h-5"></i>Novos Projetos</a>
+      <a href="#extrato" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="receipt-text" class="w-5 h-5"></i>Extrato Completo</a>
+    </nav>
+
+    <div class="mt-auto glass rounded-2xl p-5">
+      <div class="w-10 h-10 rounded-xl grad-orange flex items-center justify-center shadow-glow"><i data-lucide="sparkles" class="w-5 h-5 text-black"></i></div>
+      <p class="mt-4 text-sm font-semibold">Dica Magre</p>
+      <p class="text-xs text-magre-muted mt-1 leading-relaxed">Separe pelo menos 10% das receitas para seus alvos antes de gastar.</p>
+      <button id="resetBtn" class="mt-4 w-full text-xs font-semibold py-2.5 rounded-xl border border-white/10 hover:border-magre-orange hover:text-magre-orange transition flex items-center justify-center gap-2"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>Restaurar dados de exemplo</button>
+    </div>
+  </aside>
+
+  <!-- ===================== CONTEÚDO ===================== -->
+  <div class="flex-1 min-w-0">
+
+    <!-- Topo Mobile -->
+    <div class="lg:hidden sticky top-0 z-40 bg-[#161616]/90 backdrop-blur-xl border-b border-white/5">
+      <div class="flex items-center gap-3 px-4 pt-4">
+        <div class="logo-m w-10 h-10"></div>
+        <div>
+          <p class="text-base font-extrabold tracking-wide leading-none">MAGRE <span class="text-grad">BANK</span></p>
+          <p class="text-[10px] text-magre-muted mt-1">Seu banco. Mais possibilidades.</p>
+        </div>
+        <button data-open-settings class="ml-auto flex items-center gap-1.5 text-[10px] font-semibold px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+          <span id="mSyncDot" class="w-2 h-2 rounded-full bg-magre-muted"></span><span id="mSyncText" class="text-magre-muted">Local</span>
+          <i data-lucide="settings" class="w-3.5 h-3.5 text-magre-muted"></i>
+        </button>
+      </div>
+      <nav class="flex gap-2 overflow-x-auto scrollbar-none px-4 py-3" id="mobileNav">
+        <a href="#dashboard" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full grad-orange text-black"><i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i>Dashboard</a>
+        <a href="#cartoes" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="credit-card" class="w-3.5 h-3.5"></i>Cartões</a>
+        <a href="#alvos" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="target" class="w-3.5 h-3.5"></i>Metas</a>
+        <a href="#lancamentos" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="rocket" class="w-3.5 h-3.5"></i>Projetos</a>
+        <a href="#extrato" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="receipt-text" class="w-3.5 h-3.5"></i>Extrato</a>
+      </nav>
+    </div>
+
+    <main class="px-4 sm:px-6 lg:px-10 py-6 lg:py-10 max-w-[1400px] mx-auto space-y-8 lg:space-y-10">
+
+      <!-- ===================== HEADER ===================== -->
+      <header id="dashboard" class="scroll-mt-32 flex flex-col md:flex-row md:items-end gap-5 justify-between">
+        <div>
+          <p class="text-xs font-semibold tracking-[.2em] uppercase text-magre-orange" id="todayLabel">—</p>
+          <h1 class="mt-2 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">Olá, seja <span class="text-grad">bem-vindo!</span></h1>
+          <p class="mt-2 text-sm sm:text-base text-magre-muted max-w-xl">Controlar seu dinheiro é o primeiro passo para o crescimento.</p>
+        </div>
+        <div class="hidden lg:flex items-center gap-3">
+          <button id="syncBtn" title="Buscar dados da planilha" class="glass rounded-2xl px-4 py-3 flex items-center gap-3 hover:border-magre-green/40 transition text-left">
+            <span id="syncDot" class="w-2.5 h-2.5 rounded-full bg-magre-muted"></span>
+            <span>
+              <span id="syncText" class="block text-xs font-semibold">Modo local</span>
+              <span id="syncTime" class="block text-[11px] text-magre-muted">Conecte o Google Planilhas</span>
+            </span>
+            <span id="syncIconWrap"><i data-lucide="refresh-cw" class="w-4 h-4 text-magre-muted ml-1"></i></span>
+          </button>
+          <button data-open-settings title="Configurar Google Planilhas" class="glass w-12 h-12 rounded-2xl flex items-center justify-center text-magre-muted hover:text-magre-orange hover:border-magre-orange/40 transition"><i data-lucide="settings" class="w-5 h-5"></i></button>
+          <div class="w-12 h-12 rounded-2xl grad-orange flex items-center justify-center font-bold text-black shadow-glow">VC</div>
+        </div>
+      </header>
+
+      <!-- ===================== SEÇÃO 1 · KPIs ===================== -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-5">
+        <!-- Saldo -->
+        <div class="glass rounded-3xl p-6 relative overflow-hidden fade-in">
+          <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-magre-orange/10 blur-2xl"></div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold tracking-wider uppercase text-magre-muted">Saldo Disponível</span>
+            <div class="flex items-center gap-1">
+              <button id="toggleEye" class="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-magre-muted" title="Ocultar valores"><i data-lucide="eye" class="w-4 h-4"></i></button>
+              <div class="w-10 h-10 rounded-xl grad-orange flex items-center justify-center shadow-glow"><i data-lucide="wallet" class="w-5 h-5 text-black"></i></div>
+            </div>
+          </div>
+          <p id="kpiSaldo" class="money mt-5 text-3xl font-extrabold text-white tracking-tight">R$ 0,00</p>
+          <p class="mt-2 text-xs text-magre-muted">Conta corrente Magre</p>
+        </div>
+        <!-- Receitas -->
+        <div class="glass rounded-3xl p-6 fade-in">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold tracking-wider uppercase text-magre-muted">Receitas do Mês</span>
+            <div class="w-10 h-10 rounded-xl bg-magre-green/10 border border-magre-green/20 flex items-center justify-center"><i data-lucide="trending-up" class="w-5 h-5 text-magre-green"></i></div>
+          </div>
+          <p id="kpiReceitas" class="money mt-5 text-3xl font-extrabold text-magre-green tracking-tight">R$ 0,00</p>
+          <p class="mt-2 text-xs text-magre-muted flex items-center gap-1"><i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-magre-green"></i><span id="kpiReceitasCount">0 entradas</span></p>
+        </div>
+        <!-- Despesas -->
+        <div class="glass rounded-3xl p-6 fade-in">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold tracking-wider uppercase text-magre-muted">Despesas Correntes</span>
+            <div class="w-10 h-10 rounded-xl bg-magre-red/10 border border-magre-red/20 flex items-center justify-center"><i data-lucide="trending-down" class="w-5 h-5 text-magre-red"></i></div>
+          </div>
+          <p id="kpiDespesas" class="money mt-5 text-3xl font-extrabold text-magre-red tracking-tight">R$ 0,00</p>
+          <p class="mt-2 text-xs text-magre-muted flex items-center gap-1"><i data-lucide="arrow-down-right" class="w-3.5 h-3.5 text-magre-red"></i><span id="kpiDespesasInfo">Conta + cartões</span></p>
+        </div>
+        <!-- Limite -->
+        <div class="glass rounded-3xl p-6 fade-in">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold tracking-wider uppercase text-magre-muted">Limite Total Utilizado</span>
+            <div class="w-10 h-10 rounded-xl bg-magre-orange/10 border border-magre-orange/25 flex items-center justify-center"><i data-lucide="gauge" class="w-5 h-5 text-magre-orange"></i></div>
+          </div>
+          <p id="kpiLimite" class="money mt-5 text-3xl font-extrabold tracking-tight">R$ 0,00</p>
+          <div class="mt-3 h-2 rounded-full progress-track overflow-hidden"><div id="kpiLimiteBar" class="progress-fill h-full rounded-full" style="width:0%"></div></div>
+          <p class="mt-2 text-xs text-magre-muted"><span id="kpiLimitePct" class="text-magre-orange font-semibold">0%</span> de <span id="kpiLimiteTotal" class="money">R$ 0</span> em <span id="kpiCardsCount">0</span> cartões</p>
+        </div>
+      </section>
+
+      <!-- ===================== SEÇÃO 2 · CARTÕES & ALVOS ===================== -->
+      <section class="grid grid-cols-1 xl:grid-cols-5 gap-6">
+
+        <!-- Cartões -->
+        <div id="cartoes" class="scroll-mt-32 xl:col-span-3 panel rounded-3xl p-5 sm:p-7">
+          <div class="flex flex-wrap items-center gap-3 justify-between">
+            <div>
+              <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="credit-card" class="w-5 h-5 text-magre-orange"></i>Meus Cartões de Crédito</h2>
+              <p class="text-xs text-magre-muted mt-1">Clique em um cartão para filtrar o extrato e pré-selecionar no lançamento.</p>
+            </div>
+            <button data-toggle="cardForm" class="grad-orange text-black text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-glow hover:brightness-110 transition"><i data-lucide="plus" class="w-4 h-4"></i>Novo cartão</button>
+          </div>
+
+          <form id="cardForm" class="hidden mt-5 grid grid-cols-2 md:grid-cols-4 gap-3 p-4 rounded-2xl bg-black/20 border border-white/5 fade-in">
+            <div class="col-span-2 md:col-span-1"><label class="label">Banco</label><input class="input" name="banco" placeholder="Ex: Inter" required /></div>
+            <div><label class="label">Limite (R$)</label><input class="input" name="limite" type="number" min="1" step="0.01" placeholder="5000" required /></div>
+            <div><label class="label">Vencimento</label><input class="input" name="venc" type="number" min="1" max="31" placeholder="Dia 10" required /></div>
+            <div class="col-span-2 md:col-span-1 flex items-end"><button class="w-full grad-orange text-black font-bold text-sm py-3 rounded-xl">Adicionar</button></div>
+          </form>
+
+          <div id="cardsGrid" class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- Alvos -->
+        <div id="alvos" class="scroll-mt-32 xl:col-span-2 panel rounded-3xl p-5 sm:p-7">
+          <div class="flex flex-wrap items-center gap-3 justify-between">
+            <div>
+              <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="target" class="w-5 h-5 text-magre-orange"></i>Alvos &amp; Investimentos</h2>
+              <p class="text-xs text-magre-muted mt-1">Alocação de capital e novos projetos.</p>
+            </div>
+            <button data-toggle="goalForm" class="text-xs font-bold px-4 py-2.5 rounded-xl border border-magre-orange/40 text-magre-orange hover:bg-magre-orange/10 transition flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i>Novo alvo</button>
+          </div>
+
+          <form id="goalForm" class="hidden mt-5 grid grid-cols-2 gap-3 p-4 rounded-2xl bg-black/20 border border-white/5 fade-in">
+            <div class="col-span-2"><label class="label">Nome do alvo</label><input class="input" name="nome" placeholder="Ex: Novo Projeto X" required /></div>
+            <div><label class="label">Valor alvo (R$)</label><input class="input" name="alvo" type="number" min="1" step="0.01" placeholder="20000" required /></div>
+            <div><label class="label">Já guardado</label><input class="input" name="guardado" type="number" min="0" step="0.01" placeholder="0" /></div>
+            <button class="col-span-2 grad-orange text-black font-bold text-sm py-3 rounded-xl">Criar alvo</button>
+          </form>
+
+          <div id="goalsList" class="mt-6 space-y-4"></div>
+        </div>
+      </section>
+
+      <!-- ===================== SEÇÃO 3 · FORMULÁRIO ===================== -->
+      <section id="lancamentos" class="scroll-mt-32 panel rounded-3xl p-5 sm:p-7 relative overflow-hidden">
+        <div class="absolute -left-20 -bottom-24 w-72 h-72 rounded-full bg-magre-orange/10 blur-3xl pointer-events-none"></div>
+        <div class="relative flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="zap" class="w-5 h-5 text-magre-orange"></i>Lançamento Rápido</h2>
+            <p class="text-xs text-magre-muted mt-1">Registre receitas, despesas, gastos no cartão ou aportes em seus alvos.</p>
+          </div>
+        </div>
+
+        <form id="txForm" class="relative mt-6 space-y-5">
+          <!-- Tipo -->
+          <div>
+            <span class="label">Tipo de lançamento</span>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              <label class="type-chip cursor-pointer"><input type="radio" name="tipo" value="receita" class="sr-only" checked /><span class="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 py-3 rounded-xl border border-white/10 bg-white/[.03] hover:border-white/25 transition"><i data-lucide="arrow-down-left" class="w-4 h-4"></i>Receita</span></label>
+              <label class="type-chip cursor-pointer"><input type="radio" name="tipo" value="despesa" class="sr-only" /><span class="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 py-3 rounded-xl border border-white/10 bg-white/[.03] hover:border-white/25 transition"><i data-lucide="arrow-up-right" class="w-4 h-4"></i>Despesa Corrente</span></label>
+              <label class="type-chip cursor-pointer"><input type="radio" name="tipo" value="cartao" class="sr-only" /><span class="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 py-3 rounded-xl border border-white/10 bg-white/[.03] hover:border-white/25 transition"><i data-lucide="credit-card" class="w-4 h-4"></i>Gasto no Cartão</span></label>
+              <label class="type-chip cursor-pointer"><input type="radio" name="tipo" value="aporte" class="sr-only" /><span class="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 py-3 rounded-xl border border-white/10 bg-white/[.03] hover:border-white/25 transition"><i data-lucide="piggy-bank" class="w-4 h-4"></i>Aporte em Alvo</span></label>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4">
+            <div class="lg:col-span-4"><label class="label" for="fDesc">Descrição</label><input id="fDesc" name="desc" class="input" placeholder="Ex: Supermercado, Salário..." required /></div>
+            <div class="lg:col-span-2">
+              <label class="label" for="fValor">Valor (R$)</label>
+              <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-magre-orange font-semibold">R$</span><input id="fValor" name="valor" type="number" min="0.01" step="0.01" class="input pl-11" placeholder="0,00" required /></div>
+            </div>
+            <div class="lg:col-span-2"><label class="label" for="fData">Data</label><input id="fData" name="data" type="date" class="input" required /></div>
+            <div class="lg:col-span-2"><label class="label" for="fCat">Categoria</label><select id="fCat" name="cat" class="input"></select></div>
+            <div class="lg:col-span-2">
+              <label class="label" for="fOrigem" id="fOrigemLabel">Origem / Pagamento</label>
+              <select id="fOrigem" name="origem" class="input"></select>
+            </div>
+          </div>
+
+          <!-- Pré-visualização dinâmica -->
+          <div class="flex flex-col md:flex-row md:items-center gap-4 justify-between pt-1">
+            <div id="txPreview" class="text-xs text-magre-muted flex items-center gap-2 min-h-[1.5rem]"></div>
+            <button type="submit" class="grad-orange text-black font-bold text-sm px-8 py-3.5 rounded-xl shadow-glow hover:brightness-110 active:scale-[.98] transition flex items-center justify-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Registrar lançamento</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ===================== SEÇÃO 4 · EXTRATO ===================== -->
+      <section id="extrato" class="scroll-mt-32 panel rounded-3xl p-5 sm:p-7">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="receipt-text" class="w-5 h-5 text-magre-orange"></i>Últimas Movimentações</h2>
+            <p class="text-xs text-magre-muted mt-1"><span id="txCount">0</span> lançamentos · <span id="filterLabel">Todas as origens</span></p>
+          </div>
+          <div class="flex gap-2 overflow-x-auto scrollbar-none" id="filters"></div>
+        </div>
+
+        <!-- Tabela Desktop -->
+        <div class="hidden md:block mt-6 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-[11px] uppercase tracking-wider text-magre-muted border-b border-white/5">
+                <th class="py-3 pr-4 font-semibold">Descrição</th>
+                <th class="py-3 pr-4 font-semibold">Categoria</th>
+                <th class="py-3 pr-4 font-semibold">Data</th>
+                <th class="py-3 pr-4 font-semibold">Origem</th>
+                <th class="py-3 pr-4 font-semibold text-right">Valor</th>
+                <th class="py-3 w-10"></th>
+              </tr>
+            </thead>
+            <tbody id="txTable"></tbody>
+          </table>
+        </div>
+        <!-- Lista Mobile -->
+        <ul id="txList" class="md:hidden mt-5 space-y-2.5"></ul>
+
+        <div id="txEmpty" class="hidden py-12 text-center text-magre-muted text-sm">
+          <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-3 opacity-60"></i>Nenhuma movimentação para este filtro.
+        </div>
+      </section>
+
+      <footer class="pt-2 pb-8 text-center text-[11px] text-magre-muted/70">
+        © 2026 MAGRE BANK · Seu banco. Mais possibilidades. — Ambiente de demonstração
+      </footer>
+    </main>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-24 opacity-0 z-50 glass rounded-2xl px-5 py-3.5 flex items-center gap-3 text-sm font-medium shadow-soft">
+  <span class="w-8 h-8 rounded-lg grad-orange flex items-center justify-center"><i data-lucide="check" class="w-4 h-4 text-black"></i></span>
+  <span id="toastText">Lançamento registrado</span>
+</div>
+
+<!-- Modal: Google Planilhas -->
+<div id="settingsModal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
+  <div data-close-settings class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+  <form id="settingsForm" class="relative w-full max-w-lg panel rounded-3xl p-6 sm:p-7 shadow-soft fade-in">
+    <div class="flex items-start gap-3">
+      <div class="w-11 h-11 rounded-xl grad-orange flex items-center justify-center shrink-0"><i data-lucide="file-spreadsheet" class="w-5 h-5 text-black"></i></div>
+      <div class="flex-1">
+        <h3 class="text-lg font-bold">Conectar ao Google Planilhas</h3>
+        <p class="text-xs text-magre-muted mt-1 leading-relaxed">Cole a URL do App da Web (termina em <b>/exec</b>) e a chave definida no script. Ficam salvas só neste navegador.</p>
+      </div>
+      <button type="button" data-close-settings class="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-magre-muted"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div class="mt-6 space-y-4">
+      <div><label class="label" for="cfgUrl">URL do App da Web</label><input id="cfgUrl" class="input" type="url" placeholder="https://script.google.com/macros/s/.../exec" required /></div>
+      <div><label class="label" for="cfgToken">Chave de acesso</label><input id="cfgToken" class="input" type="password" placeholder="A mesma CHAVE do Code.gs" required /></div>
+      <p id="cfgMsg" class="text-xs min-h-[1rem]"></p>
+    </div>
+    <div class="mt-5 flex flex-col-reverse sm:flex-row gap-2.5 sm:justify-between">
+      <button type="button" id="cfgDisconnect" class="text-xs font-semibold px-4 py-3 rounded-xl border border-white/10 text-magre-muted hover:text-magre-red hover:border-magre-red/40 transition">Desconectar</button>
+      <button type="submit" class="grad-orange text-black font-bold text-sm px-6 py-3 rounded-xl shadow-glow hover:brightness-110 transition flex items-center justify-center gap-2"><i data-lucide="plug-zap" class="w-4 h-4"></i>Testar e conectar</button>
+    </div>
+  </form>
+</div>
+
+<!-- Template do logo M -->
+<template id="logoTpl">
+  <svg viewBox="0 0 48 48" class="w-full h-full" aria-label="Logo Magre Bank">
+    <defs>
+      <linearGradient id="gm" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#FF6A00" /><stop offset="1" stop-color="#FF8C00" />
+      </linearGradient>
+    </defs>
+    <rect x="1" y="1" width="46" height="46" rx="14" fill="#111" stroke="url(#gm)" stroke-opacity=".35" />
+    <path d="M11 35V14.5c0-1 1.2-1.5 1.9-.8L24 25l11.1-11.3c.7-.7 1.9-.2 1.9.8V35" fill="none" stroke="url(#gm)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+</template>
+
+<script>
+/* =========================================================
+   MAGRE BANK · Lógica local de demonstração
+   ========================================================= */
+const STORAGE_KEY = 'magrebank_demo_v1';
+const today = new Date();
+const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const daysAgo = n => { const d = new Date(today); d.setDate(d.getDate() - n); return iso(d); };
+
+const BANK_TINTS = {
+  nubank:    'rgba(138, 5, 190, .55)',
+  santander: 'rgba(236, 0, 0, .45)',
+  'itaú':    'rgba(255, 120, 0, .45)',
+  itau:      'rgba(255, 120, 0, .45)',
+  inter:     'rgba(255, 122, 0, .45)',
+  'c6':      'rgba(180, 180, 180, .30)',
+  bradesco:  'rgba(204, 9, 47, .45)',
+  magre:     'rgba(255, 106, 0, .55)'
+};
+
+const CATEGORIAS = {
+  receita: ['Salário', 'Freelance', 'Rendimentos', 'Vendas', 'Outros'],
+  despesa: ['Moradia', 'Alimentação', 'Transporte', 'Saúde', 'Educação', 'Contas', 'Outros'],
+  cartao:  ['Compras', 'Alimentação', 'Assinaturas', 'Viagem', 'Lazer', 'Tecnologia', 'Outros'],
+  aporte:  ['Reserva', 'Ações', 'Renda Fixa', 'FIIs', 'Projeto', 'Outros']
+};
+
+function seed() {
+  return {
+    saldoInicial: 4200,
+    hidden: false,
+    cards: [
+      { id: 'c1', banco: 'Magre',     limite: 15000, venc: 10, bandeira: 'Visa Infinite', final: '4821' },
+      { id: 'c2', banco: 'Nubank',    limite: 8000,  venc: 7,  bandeira: 'Mastercard',    final: '1093' },
+      { id: 'c3', banco: 'Santander', limite: 6500,  venc: 15, bandeira: 'Visa',          final: '7740' },
+      { id: 'c4', banco: 'Itaú',      limite: 10000, venc: 22, bandeira: 'Mastercard Black', final: '3358' }
+    ],
+    goals: [
+      { id: 'g1', nome: 'Reserva de Emergência', alvo: 30000, guardado: 18400, icone: 'shield-check' },
+      { id: 'g2', nome: 'Próximo Aporte em Ações', alvo: 5000, guardado: 3150, icone: 'line-chart' },
+      { id: 'g3', nome: 'Novo Projeto X', alvo: 20000, guardado: 4600, icone: 'rocket' }
+    ],
+    tx: [
+      { id: 't1', desc: 'Salário', valor: 9800, data: daysAgo(2), tipo: 'receita', cat: 'Salário', origem: 'conta' },
+      { id: 't2', desc: 'Aluguel do apartamento', valor: 2300, data: daysAgo(2), tipo: 'despesa', cat: 'Moradia', origem: 'conta' },
+      { id: 't3', desc: 'Supermercado Pão de Açúcar', valor: 486.9, data: daysAgo(3), tipo: 'cartao', cat: 'Alimentação', origem: 'c2' },
+      { id: 't4', desc: 'Passagem aérea · SP → POA', valor: 1240, data: daysAgo(4), tipo: 'cartao', cat: 'Viagem', origem: 'c3' },
+      { id: 't5', desc: 'Aporte mensal da reserva', valor: 800, data: daysAgo(5), tipo: 'aporte', cat: 'Reserva', origem: 'g1' },
+      { id: 't6', desc: 'Notebook de trabalho', valor: 3890, data: daysAgo(6), tipo: 'cartao', cat: 'Tecnologia', origem: 'c1' },
+      { id: 't7', desc: 'Projeto freelance UI', valor: 2400, data: daysAgo(7), tipo: 'receita', cat: 'Freelance', origem: 'conta' },
+      { id: 't8', desc: 'Conta de energia', valor: 312.45, data: daysAgo(8), tipo: 'despesa', cat: 'Contas', origem: 'conta' },
+      { id: 't9', desc: 'Streaming + música', valor: 89.8, data: daysAgo(9), tipo: 'cartao', cat: 'Assinaturas', origem: 'c4' },
+      { id: 't10', desc: 'Restaurante · jantar', valor: 268, data: daysAgo(10), tipo: 'cartao', cat: 'Lazer', origem: 'c2' }
+    ]
+  };
+}
+
+let state;
+try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || seed(); } catch (e) { state = seed(); }
+let activeFilter = 'all';
+
+const save = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} };
+const $ = s => document.querySelector(s);
+const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const fmtDate = s => { const [y, m, d] = s.split('-'); return `${d}/${m}/${y}`; };
+const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+const tintOf = banco => BANK_TINTS[banco.toLowerCase()] || 'rgba(255,106,0,.40)';
+const cardById = id => state.cards.find(c => c.id === id);
+const goalById = id => state.goals.find(g => g.id === id);
+const usedOf = id => state.tx.filter(t => t.tipo === 'cartao' && t.origem === id).reduce((s, t) => s + t.valor, 0);
+const icons = () => window.lucide && lucide.createIcons();
+const money = v => state.hidden ? 'R$ ••••••' : brl(v);
+
+/* ---------- Logo ---------- */
+document.querySelectorAll('.logo-m').forEach(el => el.appendChild($('#logoTpl').content.cloneNode(true)));
+$('#todayLabel').textContent = today.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+
+/* ---------- KPIs ---------- */
+function renderKPIs() {
+  const m = today.getMonth(), y = today.getFullYear();
+  const inMonth = t => { const d = new Date(t.data + 'T00:00'); return d.getMonth() === m && d.getFullYear() === y; };
+  const sum = (arr) => arr.reduce((s, t) => s + t.valor, 0);
+
+  const receitasAll = sum(state.tx.filter(t => t.tipo === 'receita'));
+  const saidasConta = sum(state.tx.filter(t => t.tipo === 'despesa' || t.tipo === 'aporte'));
+  const saldo = state.saldoInicial + receitasAll - saidasConta;
+
+  const recMes = state.tx.filter(t => t.tipo === 'receita' && inMonth(t));
+  const despMes = state.tx.filter(t => (t.tipo === 'despesa' || t.tipo === 'cartao') && inMonth(t));
+  const despConta = sum(despMes.filter(t => t.tipo === 'despesa'));
+  const despCartao = sum(despMes.filter(t => t.tipo === 'cartao'));
+
+  const limTotal = state.cards.reduce((s, c) => s + c.limite, 0);
+  const limUsado = state.cards.reduce((s, c) => s + usedOf(c.id), 0);
+  const pct = limTotal ? Math.min(100, (limUsado / limTotal) * 100) : 0;
+
+  $('#kpiSaldo').textContent = money(saldo);
+  $('#kpiSaldo').classList.toggle('text-magre-red', saldo < 0);
+  $('#kpiReceitas').textContent = money(sum(recMes));
+  $('#kpiReceitasCount').textContent = `${recMes.length} ${recMes.length === 1 ? 'entrada' : 'entradas'} este mês`;
+  $('#kpiDespesas').textContent = money(despConta + despCartao);
+  $('#kpiDespesasInfo').textContent = state.hidden ? 'Conta + cartões' : `Conta ${brl(despConta)} · Cartões ${brl(despCartao)}`;
+  $('#kpiLimite').textContent = money(limUsado);
+  $('#kpiLimiteTotal').textContent = money(limTotal);
+  $('#kpiLimitePct').textContent = pct.toFixed(1).replace('.', ',') + '%';
+  $('#kpiCardsCount').textContent = state.cards.length;
+  requestAnimationFrame(() => $('#kpiLimiteBar').style.width = pct + '%');
+}
+
+/* ---------- Cartões ---------- */
+function renderCards() {
+  const grid = $('#cardsGrid');
+  grid.innerHTML = state.cards.map(c => {
+    const used = usedOf(c.id);
+    const disp = Math.max(0, c.limite - used);
+    const pct = Math.min(100, (used / c.limite) * 100);
+    const isMagre = c.banco.toLowerCase() === 'magre';
+    return `
+    <button type="button" data-card="${c.id}" class="bank-card ${activeFilter === c.id ? 'selected' : ''} text-left rounded-2xl p-5 bg-gradient-to-br from-[#0E0E0E] via-[#151515] to-[#1F1F1F] border border-white/10 shadow-soft hover:-translate-y-1 hover:border-white/20 transition duration-300 fade-in" style="--tint:${tintOf(c.banco)}">
+      <div class="relative flex items-start justify-between">
+        <div>
+          <p class="text-[10px] uppercase tracking-[.2em] text-magre-muted">Cartão</p>
+          <p class="text-base font-bold mt-0.5">${isMagre ? 'Magre <span class="text-grad">Bank</span>' : escapeHtml(c.banco)}</p>
+        </div>
+        ${isMagre
+          ? `<div class="w-9 h-9">${$('#logoTpl').innerHTML}</div>`
+          : `<span class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-extrabold" style="background:${tintOf(c.banco)}">${escapeHtml(c.banco[0].toUpperCase())}</span>`}
+      </div>
+      <div class="relative mt-5 flex items-center gap-3">
+        <div class="w-9 h-7 rounded-md bg-gradient-to-br from-[#d9b46a] to-[#8a6a2c] opacity-90 relative overflow-hidden"><div class="absolute inset-x-0 top-1/2 h-px bg-black/30"></div><div class="absolute inset-y-0 left-1/2 w-px bg-black/30"></div></div>
+        <i data-lucide="wifi" class="w-4 h-4 rotate-90 text-magre-muted"></i>
+        <p class="ml-auto text-xs tracking-[.25em] text-magre-light/80 font-medium">•••• ${c.final}</p>
+      </div>
+      <div class="relative mt-5">
+        <div class="flex justify-between text-[11px] text-magre-muted"><span>Disponível</span><span>${pct.toFixed(0)}% usado</span></div>
+        <p class="text-xl font-extrabold mt-1 ${disp === 0 ? 'text-magre-red' : ''}">${money(disp)}</p>
+        <div class="mt-2.5 h-1.5 rounded-full progress-track overflow-hidden"><div class="progress-fill h-full rounded-full" data-w="${pct}" style="width:0%"></div></div>
+      </div>
+      <div class="relative mt-4 pt-3 border-t border-white/5 grid grid-cols-2 gap-2 text-[11px]">
+        <div><p class="text-magre-muted">Limite total</p><p class="font-semibold mt-0.5">${money(c.limite)}</p></div>
+        <div class="text-right"><p class="text-magre-muted">Vencimento</p><p class="font-semibold mt-0.5 text-magre-orange2">Dia ${String(c.venc).padStart(2, '0')}</p></div>
+      </div>
+      <p class="relative mt-3 text-[10px] uppercase tracking-widest text-magre-muted/70">${escapeHtml(c.bandeira || 'Crédito')}</p>
+    </button>`;
+  }).join('');
+
+  grid.querySelectorAll('[data-card]').forEach(el => el.addEventListener('click', () => {
+    const id = el.dataset.card;
+    setFilter(activeFilter === id ? 'all' : id);
+    if (activeFilter === id) {
+      document.querySelector('input[name=tipo][value=cartao]').checked = true;
+      updateFormDynamic();
+      $('#fOrigem').value = id;
+      updatePreview();
+    }
+  }));
+  animateBars(grid);
+}
+
+/* ---------- Alvos ---------- */
+function renderGoals() {
+  const list = $('#goalsList');
+  list.innerHTML = state.goals.map(g => {
+    const pct = Math.min(100, (g.guardado / g.alvo) * 100);
+    const done = pct >= 100;
+    return `
+    <div class="rounded-2xl p-4 bg-black/20 border border-white/5 hover:border-magre-orange/30 transition fade-in">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl ${done ? 'grad-orange' : 'bg-magre-orange/10 border border-magre-orange/25'} flex items-center justify-center shrink-0">
+          <i data-lucide="${done ? 'trophy' : (g.icone || 'target')}" class="w-5 h-5 ${done ? 'text-black' : 'text-magre-orange'}"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-semibold truncate">${escapeHtml(g.nome)}</p>
+          <p class="text-[11px] text-magre-muted">${done ? 'Alvo alcançado! 🎉' : 'Faltam ' + money(g.alvo - g.guardado)}</p>
+        </div>
+        <span class="text-sm font-extrabold text-grad">${pct.toFixed(0)}%</span>
+      </div>
+      <div class="mt-3.5 h-2.5 rounded-full progress-track overflow-hidden"><div class="progress-fill h-full rounded-full" data-w="${pct}" style="width:0%"></div></div>
+      <div class="mt-2.5 flex items-center justify-between text-[11px]">
+        <span class="text-magre-muted">Guardado <b class="text-magre-light font-semibold">${money(g.guardado)}</b></span>
+        <span class="text-magre-muted">Alvo <b class="text-magre-light font-semibold">${money(g.alvo)}</b></span>
+      </div>
+      <div class="mt-3 flex gap-2">
+        ${[100, 500, 1000].map(v => `<button type="button" data-quick="${g.id}" data-v="${v}" class="flex-1 text-[11px] font-semibold py-1.5 rounded-lg bg-white/5 hover:bg-magre-orange hover:text-black transition">+ ${v.toLocaleString('pt-BR')}</button>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('[data-quick]').forEach(b => b.addEventListener('click', () => {
+    const g = goalById(b.dataset.quick); const v = Number(b.dataset.v);
+    addTx({ desc: 'Aporte rápido · ' + g.nome, valor: v, data: iso(today), tipo: 'aporte', cat: 'Reserva', origem: g.id });
+    toast(`${brl(v)} aportados em "${g.nome}"`);
+  }));
+  animateBars(list);
+}
+
+/* ---------- Extrato ---------- */
+function originBadge(t) {
+  if (t.tipo === 'receita') return `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-magre-green/10 text-magre-green border border-magre-green/20"><i data-lucide="arrow-down-left" class="w-3 h-3"></i>Receita</span>`;
+  if (t.tipo === 'despesa') return `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-magre-red/10 text-magre-red border border-magre-red/20"><i data-lucide="landmark" class="w-3 h-3"></i>Conta Corrente</span>`;
+  if (t.tipo === 'cartao') {
+    const c = cardById(t.origem);
+    const name = c ? 'Cartão ' + c.banco : 'Cartão removido';
+    return `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full grad-orange text-black"><i data-lucide="credit-card" class="w-3 h-3"></i>${escapeHtml(name)}</span>`;
+  }
+  const g = goalById(t.origem);
+  return `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-magre-orange/10 text-magre-orange2 border border-magre-orange/30"><i data-lucide="piggy-bank" class="w-3 h-3"></i>${escapeHtml(g ? g.nome : 'Aporte')}</span>`;
+}
+const txIcon = t => ({ receita: 'arrow-down-left', despesa: 'arrow-up-right', cartao: 'credit-card', aporte: 'piggy-bank' })[t.tipo];
+const txColor = t => t.tipo === 'receita' ? 'text-magre-green' : t.tipo === 'aporte' ? 'text-magre-orange2' : 'text-magre-red';
+const txSign = t => t.tipo === 'receita' ? '+ ' : '− ';
+
+function filteredTx() {
+  const list = [...state.tx].sort((a, b) => b.data.localeCompare(a.data) || b.id.localeCompare(a.id));
+  if (activeFilter === 'all') return list;
+  if (activeFilter === 'receita' || activeFilter === 'despesa' || activeFilter === 'aporte') return list.filter(t => t.tipo === activeFilter);
+  return list.filter(t => t.tipo === 'cartao' && t.origem === activeFilter);
+}
+
+function renderFilters() {
+  const opts = [
+    { id: 'all', label: 'Todas' },
+    { id: 'receita', label: 'Receitas' },
+    { id: 'despesa', label: 'Conta Corrente' },
+    { id: 'aporte', label: 'Aportes' },
+    ...state.cards.map(c => ({ id: c.id, label: 'Cartão ' + c.banco }))
+  ];
+  $('#filters').innerHTML = opts.map(o => `<button data-f="${o.id}" class="shrink-0 text-xs font-semibold px-3.5 py-2 rounded-full transition ${activeFilter === o.id ? 'grad-orange text-black' : 'bg-white/5 text-magre-muted hover:text-magre-light'}">${escapeHtml(o.label)}</button>`).join('');
+  $('#filters').querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => setFilter(b.dataset.f)));
+  const cur = opts.find(o => o.id === activeFilter);
+  $('#filterLabel').textContent = activeFilter === 'all' ? 'Todas as origens' : 'Filtro: ' + (cur ? cur.label : '');
+}
+
+function renderTx() {
+  const list = filteredTx();
+  $('#txCount').textContent = list.length;
+  $('#txEmpty').classList.toggle('hidden', list.length > 0);
+
+  $('#txTable').innerHTML = list.map(t => `
+    <tr class="border-b border-white/[.04] hover:bg-white/[.02] transition fade-in">
+      <td class="py-3.5 pr-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center ${txColor(t)}"><i data-lucide="${txIcon(t)}" class="w-4 h-4"></i></div>
+          <span class="font-medium">${escapeHtml(t.desc)}</span>
+        </div>
+      </td>
+      <td class="py-3.5 pr-4 text-magre-muted">${escapeHtml(t.cat)}</td>
+      <td class="py-3.5 pr-4 text-magre-muted">${fmtDate(t.data)}</td>
+      <td class="py-3.5 pr-4">${originBadge(t)}</td>
+      <td class="py-3.5 pr-4 text-right font-bold ${txColor(t)}">${state.hidden ? '••••' : txSign(t) + brl(t.valor)}</td>
+      <td class="py-3.5 text-right"><button data-del="${t.id}" class="w-8 h-8 rounded-lg text-magre-muted hover:text-magre-red hover:bg-magre-red/10 flex items-center justify-center" title="Remover"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+    </tr>`).join('');
+
+  $('#txList').innerHTML = list.map(t => `
+    <li class="rounded-2xl p-3.5 bg-black/20 border border-white/5 flex items-center gap-3 fade-in">
+      <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 ${txColor(t)}"><i data-lucide="${txIcon(t)}" class="w-4 h-4"></i></div>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-semibold truncate">${escapeHtml(t.desc)}</p>
+        <p class="text-[11px] text-magre-muted mb-1.5">${fmtDate(t.data)} · ${escapeHtml(t.cat)}</p>
+        ${originBadge(t)}
+      </div>
+      <div class="text-right shrink-0">
+        <p class="text-sm font-bold ${txColor(t)}">${state.hidden ? '••••' : txSign(t) + brl(t.valor)}</p>
+        <button data-del="${t.id}" class="mt-2 text-magre-muted hover:text-magre-red"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+      </div>
+    </li>`).join('');
+
+  document.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => removeTx(b.dataset.del)));
+}
+
+/* ---------- Formulário dinâmico ---------- */
+const tipoAtual = () => document.querySelector('input[name=tipo]:checked').value;
+
+function updateFormDynamic() {
+  const tipo = tipoAtual();
+  $('#fCat').innerHTML = CATEGORIAS[tipo].map(c => `<option>${c}</option>`).join('');
+  const origem = $('#fOrigem');
+  const lbl = $('#fOrigemLabel');
+  if (tipo === 'receita') {
+    lbl.textContent = 'Destino';
+    origem.innerHTML = `<option value="conta">Conta Corrente Magre</option>`;
+  } else if (tipo === 'despesa') {
+    lbl.textContent = 'Pago com';
+    origem.innerHTML = `<option value="conta">Conta Corrente Magre</option>`;
+  } else if (tipo === 'cartao') {
+    lbl.textContent = 'Qual cartão?';
+    origem.innerHTML = state.cards.map(c => `<option value="${c.id}">Cartão ${escapeHtml(c.banco)} · disp. ${brl(Math.max(0, c.limite - usedOf(c.id)))}</option>`).join('') || '<option value="">Cadastre um cartão</option>';
+  } else {
+    lbl.textContent = 'Qual alvo?';
+    origem.innerHTML = state.goals.map(g => `<option value="${g.id}">${escapeHtml(g.nome)}</option>`).join('') || '<option value="">Crie um alvo</option>';
+  }
+  updatePreview();
+}
+
+function updatePreview() {
+  const tipo = tipoAtual();
+  const v = parseFloat($('#fValor').value) || 0;
+  const p = $('#txPreview');
+  if (tipo === 'cartao') {
+    const c = cardById($('#fOrigem').value);
+    if (!c) { p.innerHTML = ''; return; }
+    const disp = c.limite - usedOf(c.id);
+    const after = disp - v;
+    p.innerHTML = `<i data-lucide="info" class="w-4 h-4 text-magre-orange"></i>Limite disponível no Cartão ${escapeHtml(c.banco)} após a compra: <b class="${after < 0 ? 'text-magre-red' : 'text-magre-light'}">${brl(after)}</b>${after < 0 ? ' · excede o limite' : ''}`;
+  } else if (tipo === 'aporte') {
+    const g = goalById($('#fOrigem').value);
+    if (!g) { p.innerHTML = ''; return; }
+    const pct = Math.min(100, ((g.guardado + v) / g.alvo) * 100);
+    p.innerHTML = `<i data-lucide="target" class="w-4 h-4 text-magre-orange"></i>"${escapeHtml(g.nome)}" irá para <b class="text-magre-light">${pct.toFixed(1).replace('.', ',')}%</b> do alvo`;
+  } else {
+    p.innerHTML = `<i data-lucide="landmark" class="w-4 h-4 text-magre-orange"></i>Movimenta diretamente sua conta corrente Magre`;
+  }
+  icons();
+}
+
+document.querySelectorAll('input[name=tipo]').forEach(r => r.addEventListener('change', updateFormDynamic));
+$('#fOrigem').addEventListener('change', updatePreview);
+$('#fValor').addEventListener('input', updatePreview);
+$('#fData').value = iso(today);
+
+$('#txForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const tipo = fd.get('tipo');
+  const origem = fd.get('origem');
+  const valor = parseFloat(fd.get('valor'));
+  if (!valor || valor <= 0) return toast('Informe um valor válido', true);
+  if ((tipo === 'cartao' || tipo === 'aporte') && !origem) return toast('Selecione a origem do lançamento', true);
+  if (tipo === 'cartao') {
+    const c = cardById(origem);
+    if (valor > c.limite - usedOf(c.id)) return toast(`Limite insuficiente no Cartão ${c.banco}`, true);
+  }
+  addTx({ desc: fd.get('desc').trim(), valor, data: fd.get('data'), tipo, cat: fd.get('cat'), origem });
+  const labels = { receita: 'Receita registrada', despesa: 'Despesa registrada', cartao: 'Compra lançada no ' + ('Cartão ' + (cardById(origem)?.banco || '')), aporte: 'Aporte realizado' };
+  toast(`${labels[tipo]} · ${brl(valor)}`);
+  e.target.reset();
+  $('#fData').value = iso(today);
+  document.querySelector(`input[name=tipo][value=${tipo}]`).checked = true;
+  updateFormDynamic();
+  if (tipo === 'cartao') $('#fOrigem').value = origem;
+  updatePreview();
+});
+
+/* ---------- Ações ---------- */
+function addTx(t) {
+  t.id = uid('t');
+  state.tx.push(t);
+  if (t.tipo === 'aporte') { const g = goalById(t.origem); if (g) g.guardado += t.valor; }
+  commit();
+}
+function removeTx(id) {
+  const t = state.tx.find(x => x.id === id);
+  if (!t) return;
+  if (t.tipo === 'aporte') { const g = goalById(t.origem); if (g) g.guardado = Math.max(0, g.guardado - t.valor); }
+  state.tx = state.tx.filter(x => x.id !== id);
+  commit();
+  toast('Lançamento removido');
+}
+function setFilter(f) { activeFilter = f; renderCards(); renderFilters(); renderTx(); icons(); }
+
+function commit() { save(); renderAll(); fakeSync(); }
+
+function renderAll() {
+  renderKPIs(); renderCards(); renderGoals(); renderFilters(); renderTx();
+  const tipo = tipoAtual(), sel = $('#fOrigem').value;
+  updateFormDynamic();
+  if ([...$('#fOrigem').options].some(o => o.value === sel)) $('#fOrigem').value = sel;
+  updatePreview();
+  $('#toggleEye').innerHTML = `<i data-lucide="${state.hidden ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
+  icons();
+}
+
+function animateBars(root) {
+  requestAnimationFrame(() => requestAnimationFrame(() => root.querySelectorAll('[data-w]').forEach(b => b.style.width = b.dataset.w + '%')));
+}
+
+/* Formulários de novo cartão / alvo */
+document.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', () => $('#' + b.dataset.toggle).classList.toggle('hidden')));
+
+$('#cardForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const banco = fd.get('banco').trim();
+  state.cards.push({ id: uid('c'), banco, limite: parseFloat(fd.get('limite')), venc: parseInt(fd.get('venc')), bandeira: 'Crédito', final: String(Math.floor(1000 + Math.random() * 9000)) });
+  e.target.reset(); e.target.classList.add('hidden');
+  commit(); toast(`Cartão ${banco} adicionado`);
+});
+
+$('#goalForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const nome = fd.get('nome').trim();
+  state.goals.push({ id: uid('g'), nome, alvo: parseFloat(fd.get('alvo')), guardado: parseFloat(fd.get('guardado')) || 0, icone: 'flag' });
+  e.target.reset(); e.target.classList.add('hidden');
+  commit(); toast(`Alvo "${nome}" criado`);
+});
+
+$('#toggleEye').addEventListener('click', () => { state.hidden = !state.hidden; save(); renderAll(); });
+$('#resetBtn').addEventListener('click', () => {
+  if (connected() && !confirm('Isso vai substituir os dados da sua planilha pelos dados de exemplo. Continuar?')) return;
+  state = seed(); activeFilter = 'all'; save(); renderAll(); toast('Dados de exemplo restaurados'); });
+
+/* ---------- Sincronização com o Google Planilhas ---------- */
+const CFG_KEY = 'magrebank_sheets_cfg';
+let cfg = { url: '', token: '' };
+try { cfg = JSON.parse(localStorage.getItem(CFG_KEY)) || cfg; } catch (e) {}
+const connected = () => !!(cfg.url && cfg.token);
+let lastSync = null, syncMode = 'local', pushTimer;
+
+function setSync(mode, detail) {
+  syncMode = mode;
+  const map = {
+    local: { dot: 'bg-magre-muted', text: 'Modo local', m: 'Local', mc: 'text-magre-muted' },
+    busy:  { dot: 'bg-magre-orange animate-pulse', text: 'Sincronizando…', m: 'Sync…', mc: 'text-magre-orange' },
+    ok:    { dot: 'pulse-dot bg-magre-green', text: 'Sincronizado com o Planilhas', m: 'Sync', mc: 'text-magre-green' },
+    error: { dot: 'bg-magre-red', text: 'Falha na sincronização', m: 'Erro', mc: 'text-magre-red' }
+  }[mode];
+  $('#syncDot').className = `w-2.5 h-2.5 rounded-full ${map.dot}`;
+  $('#syncText').textContent = map.text;
+  $('#mSyncDot').className = `w-2 h-2 rounded-full ${map.dot}`;
+  $('#mSyncText').textContent = map.m;
+  $('#mSyncText').className = map.mc;
+  $('#syncIconWrap').classList.toggle('animate-spin', mode === 'busy');
+  if (mode === 'ok') lastSync = Date.now();
+  if (detail) $('#syncTime').textContent = detail; else updateSyncTime();
+}
+function updateSyncTime() {
+  if (syncMode === 'local') { $('#syncTime').textContent = 'Conecte o Google Planilhas'; return; }
+  if (syncMode !== 'ok' || !lastSync) return;
+  const s = Math.floor((Date.now() - lastSync) / 1000);
+  $('#syncTime').textContent = s < 10 ? 'Última atualização agora' : s < 60 ? `Atualizado há ${s}s` : `Atualizado há ${Math.floor(s / 60)} min`;
+}
+setInterval(updateSyncTime, 5000);
+
+async function api(action, data, c = cfg) {
+  // text/plain evita a requisição "preflight" de CORS, que o Apps Script não responde
+  const r = await fetch(c.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, token: c.token, data }) });
+  let j;
+  try { j = await r.json(); } catch (e) { throw new Error('Resposta inválida. Confira se a implantação permite acesso a "Qualquer pessoa".'); }
+  if (!j.ok) throw new Error(j.error || 'Erro desconhecido');
+  return j;
+}
+const payload = () => ({ saldoInicial: state.saldoInicial, cards: state.cards, goals: state.goals, tx: state.tx });
+
+async function pullFromSheet() {
+  if (!connected()) { setSync('local'); openSettings(); return; }
+  setSync('busy', 'Lendo a planilha…');
+  try {
+    const { data } = await api('load');
+    const empty = !data.tx.length && !data.cards.length && !data.goals.length;
+    if (empty) {
+      await api('save', payload());           // planilha nova: envia os dados atuais
+    } else {
+      state = { ...state, ...data, hidden: state.hidden };
+      save(); renderAll();
+    }
+    setSync('ok');
+  } catch (e) { setSync('error', e.message); }
+}
+
+function schedulePush() {
+  if (!connected()) return;
+  setSync('busy', 'Enviando para a planilha…');
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(async () => {
+    try { await api('save', payload()); setSync('ok'); }
+    catch (e) { setSync('error', e.message); toast('Não foi possível salvar na planilha', true); }
+  }, 700);
+}
+function fakeSync() { schedulePush(); }   // chamado por commit()
+
+$('#syncBtn').addEventListener('click', pullFromSheet);
+
+/* Modal de configuração */
+function openSettings() {
+  $('#cfgUrl').value = cfg.url; $('#cfgToken').value = cfg.token; $('#cfgMsg').textContent = '';
+  $('#settingsModal').classList.remove('hidden'); icons();
+}
+const closeSettings = () => $('#settingsModal').classList.add('hidden');
+document.querySelectorAll('[data-open-settings]').forEach(b => b.addEventListener('click', openSettings));
+document.querySelectorAll('[data-close-settings]').forEach(b => b.addEventListener('click', closeSettings));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSettings(); });
+
+$('#settingsForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const next = { url: $('#cfgUrl').value.trim(), token: $('#cfgToken').value.trim() };
+  const msg = $('#cfgMsg');
+  if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(next.url)) {
+    msg.className = 'text-xs text-magre-red'; msg.textContent = 'A URL precisa começar com https://script.google.com/ e terminar em /exec.'; return;
+  }
+  msg.className = 'text-xs text-magre-orange'; msg.textContent = 'Testando conexão…';
+  try {
+    await api('load', null, next);
+    cfg = next;
+    try { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); } catch (err) {}
+    closeSettings();
+    toast('Google Planilhas conectado');
+    pullFromSheet();
+  } catch (err) {
+    msg.className = 'text-xs text-magre-red'; msg.textContent = err.message === 'Failed to fetch' ? 'Não foi possível acessar a URL. Confira a implantação do App da Web.' : err.message;
+  }
+});
+$('#cfgDisconnect').addEventListener('click', () => {
+  cfg = { url: '', token: '' };
+  try { localStorage.removeItem(CFG_KEY); } catch (e) {}
+  closeSettings(); setSync('local'); toast('Planilha desconectada. Seguindo em modo local.');
+});
+
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(msg, err = false) {
+  const t = $('#toast');
+  $('#toastText').textContent = msg;
+  t.querySelector('span').className = `w-8 h-8 rounded-lg flex items-center justify-center ${err ? 'bg-magre-red' : 'grad-orange'}`;
+  t.querySelector('span').innerHTML = `<i data-lucide="${err ? 'alert-triangle' : 'check'}" class="w-4 h-4 text-black"></i>`;
+  icons();
+  t.classList.remove('translate-y-24', 'opacity-0');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 2600);
+}
+
+/* ---------- Navegação ativa ---------- */
+const sections = ['dashboard', 'cartoes', 'alvos', 'lancamentos', 'extrato'];
+const navObserver = new IntersectionObserver(entries => {
+  entries.forEach(en => {
+    if (!en.isIntersecting) return;
+    const id = en.target.id;
+    document.querySelectorAll('.nav-link').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+    document.querySelectorAll('.m-link').forEach(a => {
+      const on = a.getAttribute('href') === '#' + id;
+      a.classList.toggle('grad-orange', on); a.classList.toggle('text-black', on);
+      a.classList.toggle('bg-white/5', !on); a.classList.toggle('text-magre-muted', !on);
+    });
+  });
+}, { rootMargin: '-35% 0px -55% 0px' });
+sections.forEach(id => { const el = document.getElementById(id); if (el) navObserver.observe(el); });
+
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+/* ---------- Início ---------- */
+renderAll();
+if (connected()) pullFromSheet(); else setSync('local');
+</script>
+</body>
+</html>
