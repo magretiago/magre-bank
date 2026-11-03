@@ -12,7 +12,7 @@ Sem planilha conectada, tudo funciona em **modo local** (dados salvos no navegad
 2. Vá em **Extensões → Apps Script**.
 3. Apague o conteúdo do editor e cole o arquivo [`apps-script/Code.gs`](apps-script/Code.gs).
 4. Na linha `const CHAVE = '...'`, troque pela sua senha secreta.
-5. No topo do editor, escolha a função **`configurar`** e clique em **Executar**. Autorize o acesso quando pedir. As abas `Lancamentos`, `Cartoes`, `Alvos`, `Contas` e `Config` serão criadas, e o lembrete diário por e-mail (8h) é ativado.
+5. No topo do editor, escolha a função **`configurar`** e clique em **Executar**. Autorize o acesso quando pedir. As abas `Lancamentos`, `ContasBancarias`, `Cartoes`, `Alvos`, `Contas`, `Categorias` e `Config` serão criadas, e o lembrete diário por e-mail (8h) é ativado.
 6. Clique em **Implantar → Nova implantação**:
    - Tipo: **App da Web**
    - Executar como: **Eu**
@@ -30,11 +30,27 @@ Na primeira conexão, se a planilha estiver vazia, o site envia os dados atuais 
 
 - Cadastre contas recorrentes (aluguel, água, energia, internet…) com o dia do vencimento. O valor é opcional, para contas de consumo.
 - O site mostra um alerta no topo e um contador no sino quando há contas vencidas ou vencendo nos próximos dias.
-- Ao clicar em **Pagar**, informe o valor e a forma de pagamento (conta corrente ou um cartão). Você pode atualizar o valor padrão da conta. O pagamento vai direto para o extrato e a conta passa para o próximo mês.
+- Ao clicar em **Pagar**, informe o valor, por onde pagou (uma conta bancária ou um cartão) e a forma (Pix, boleto, dinheiro…). Você pode atualizar o valor padrão da conta. O pagamento vai direto para o extrato e a conta passa para o próximo mês.
 - Remover o lançamento do pagamento no extrato reabre a conta.
 - Todo dia às 8h o script envia um e-mail se houver contas vencidas ou vencendo. Para testar na hora, rode a função **`testarLembrete`** no Apps Script.
 - Na aba `Config` você pode mudar o `email` de destino e os `diasAviso` (antecedência do aviso).
 - Confira o fuso do projeto em **Apps Script → Configurações do projeto → Fuso horário** (deixe *São Paulo*).
+
+## Contas bancárias, transferências e categorias
+
+- **Contas bancárias:** cadastre cada conta por onde recebe e paga (corrente, digital, poupança ou carteira de dinheiro), com o saldo inicial. O saldo atual de cada uma é calculado pelos lançamentos, e o card "Saldo Disponível" mostra a soma.
+- **Forma de pagamento:** receitas e despesas registram como o dinheiro entrou ou saiu (Pix, débito, dinheiro, boleto, transferência…). O extrato mostra, por exemplo, "Itaú · Pix", e dá para filtrar por conta e por forma.
+- **Transferência:** move dinheiro entre suas contas (um saque para a carteira, um Pix entre contas suas) sem contar como receita nem despesa.
+- **Categorias:** no menu **Categorias** (ou na engrenagem ao lado do campo Categoria) você cria, renomeia e remove categorias de cada tipo. Ao renomear, os lançamentos antigos são atualizados.
+
+### Atualizando da versão 1 do script
+
+Se a sua planilha usa o script antigo, o site mostra um aviso vermelho e **não grava nada** até você atualizar. Os lançamentos feitos nesse meio tempo ficam guardados no navegador e são enviados assim que o script novo estiver publicado.
+
+1. Abra **Extensões → Apps Script** e substitua todo o código pelo novo `Code.gs`, mantendo a sua `CHAVE`.
+2. Salve e rode **`configurar`** (cria as abas novas).
+3. **Implantar → Gerenciar implantações →** lápis **(Editar) → Versão: Nova versão → Implantar.** A URL continua a mesma.
+4. No site, clique no indicador de sincronização. Seus dados atuais passam a pertencer à conta "Conta Corrente Magre", com o saldo inicial que estava na aba `Config`. Depois é só renomear essa conta e cadastrar as outras.
 
 ## 2. Publicar no GitHub Pages
 

@@ -26,7 +26,8 @@
               light: '#F5F5F5',
               muted: '#9A9A9A',
               green: '#3DDC97',
-              red: '#FF5C5C'
+              red: '#FF5C5C',
+              blue: '#7DB4FF'
             }
           },
           fontFamily: { sans: ['Montserrat', 'sans-serif'] },
@@ -84,8 +85,9 @@
     .input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,106,0,.18); }
     .input::placeholder { color: #6b6b6b; }
     select.input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23FF8C00' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
+    select.input-sm { padding: .55rem 2.2rem .55rem .9rem; font-size: .75rem; border-radius: 999px; font-weight: 600; background-position: right .8rem center; }
     input[type=date].input::-webkit-calendar-picker-indicator { filter: invert(.6) sepia(1) saturate(5) hue-rotate(-10deg); cursor: pointer; }
-    .label { font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #9A9A9A; margin-bottom: .45rem; display: block; }
+    .label { font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #9A9A9A; margin-bottom: .45rem; display: flex; align-items: center; gap: .4rem; }
     .type-chip input:checked + span { background: linear-gradient(135deg, var(--orange), var(--orange2)); color: #111; border-color: transparent; box-shadow: 0 8px 24px -8px rgba(255,106,0,.6); }
     .nav-link.active { background: linear-gradient(90deg, rgba(255,106,0,.18), rgba(255,106,0,0)); color: #F5F5F5; }
     .nav-link.active::before { content: ''; position: absolute; left: 0; top: 18%; bottom: 18%; width: 3px; border-radius: 3px; background: linear-gradient(var(--orange), var(--orange2)); }
@@ -94,7 +96,7 @@
       content: ''; position: absolute; width: 220px; height: 220px; right: -70px; top: -90px; border-radius: 50%;
       background: radial-gradient(circle, var(--tint, rgba(255,106,0,.35)), transparent 70%);
     }
-    .bank-card.selected { outline: 2px solid var(--orange); outline-offset: 3px; }
+    .selected { outline: 2px solid var(--orange); outline-offset: 3px; }
     .scrollbar-none::-webkit-scrollbar { display: none; }
     .scrollbar-none { scrollbar-width: none; }
     ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -104,6 +106,8 @@
     .pulse-dot { animation: pulse 2s infinite; }
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(61,220,151,.6); } 70% { box-shadow: 0 0 0 8px rgba(61,220,151,0); } 100% { box-shadow: 0 0 0 0 rgba(61,220,151,0); } }
     .toast { transition: all .35s cubic-bezier(.22,1,.36,1); }
+    .gear-link { color: #6b6b6b; transition: color .2s; }
+    .gear-link:hover { color: var(--orange); }
   </style>
 </head>
 
@@ -111,7 +115,7 @@
 <div class="flex min-h-screen">
 
   <!-- ===================== SIDEBAR (Desktop) ===================== -->
-  <aside class="hidden lg:flex w-72 shrink-0 flex-col border-r border-white/5 bg-[#161616]/80 backdrop-blur-xl sticky top-0 h-screen px-6 py-8">
+  <aside class="hidden lg:flex w-72 shrink-0 flex-col border-r border-white/5 bg-[#161616]/80 backdrop-blur-xl sticky top-0 h-screen px-6 py-8 overflow-y-auto scrollbar-none">
     <div class="flex items-center gap-3">
       <div class="logo-m w-12 h-12"></div>
       <div>
@@ -120,22 +124,26 @@
       </div>
     </div>
 
-    <nav class="mt-12 flex flex-col gap-1.5" id="sideNav">
+    <nav class="mt-10 flex flex-col gap-1" id="sideNav">
       <p class="text-[10px] font-semibold tracking-[.2em] text-magre-muted/70 uppercase mb-2 px-4">Menu</p>
       <a href="#dashboard" class="nav-link active relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="layout-dashboard" class="w-5 h-5"></i>Dashboard</a>
+      <a href="#bancos" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="landmark" class="w-5 h-5"></i>Contas Bancárias</a>
       <a href="#cartoes" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="credit-card" class="w-5 h-5"></i>Meus Cartões</a>
       <a href="#alvos" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="target" class="w-5 h-5"></i>Metas &amp; Alvos</a>
-      <a href="#lancamentos" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="rocket" class="w-5 h-5"></i>Novos Projetos</a>
       <a href="#contas" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="bell-ring" class="w-5 h-5"></i>Contas a Pagar<span data-bill-badge class="hidden ml-auto min-w-[1.4rem] h-[1.4rem] px-1.5 rounded-full bg-magre-red text-white text-[10px] font-bold items-center justify-center"></span></a>
+      <a href="#lancamentos" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="rocket" class="w-5 h-5"></i>Novos Projetos</a>
       <a href="#extrato" class="nav-link relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition"><i data-lucide="receipt-text" class="w-5 h-5"></i>Extrato Completo</a>
+      <button type="button" data-open-cats class="relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-magre-muted hover:text-magre-light hover:bg-white/5 transition text-left"><i data-lucide="tags" class="w-5 h-5"></i>Categorias</button>
     </nav>
 
-    <div class="mt-auto glass rounded-2xl p-5">
-      <div class="w-10 h-10 rounded-xl grad-orange flex items-center justify-center shadow-glow"><i data-lucide="sparkles" class="w-5 h-5 text-black"></i></div>
-      <p class="mt-4 text-sm font-semibold">Dica Magre</p>
-      <p class="text-xs text-magre-muted mt-1 leading-relaxed">Separe pelo menos 10% das receitas para seus alvos antes de gastar.</p>
-      <button id="resetBtn" class="mt-4 w-full text-xs font-semibold py-2.5 rounded-xl border border-white/10 hover:border-magre-orange hover:text-magre-orange transition flex items-center justify-center gap-2"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>Restaurar dados de exemplo</button>
-      <button data-wipe class="mt-2 w-full text-xs font-semibold py-2.5 rounded-xl border border-white/10 text-magre-muted hover:border-magre-red hover:text-magre-red transition flex items-center justify-center gap-2"><i data-lucide="eraser" class="w-3.5 h-3.5"></i>Começar do zero</button>
+    <div class="mt-auto pt-6">
+      <div class="glass rounded-2xl p-5">
+        <div class="w-10 h-10 rounded-xl grad-orange flex items-center justify-center shadow-glow"><i data-lucide="sparkles" class="w-5 h-5 text-black"></i></div>
+        <p class="mt-4 text-sm font-semibold">Dica Magre</p>
+        <p class="text-xs text-magre-muted mt-1 leading-relaxed">Separe pelo menos 10% das receitas para seus alvos antes de gastar.</p>
+        <button id="resetBtn" class="mt-4 w-full text-xs font-semibold py-2.5 rounded-xl border border-white/10 hover:border-magre-orange hover:text-magre-orange transition flex items-center justify-center gap-2"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>Restaurar dados de exemplo</button>
+        <button data-wipe class="mt-2 w-full text-xs font-semibold py-2.5 rounded-xl border border-white/10 text-magre-muted hover:border-magre-red hover:text-magre-red transition flex items-center justify-center gap-2"><i data-lucide="eraser" class="w-3.5 h-3.5"></i>Começar do zero</button>
+      </div>
     </div>
   </aside>
 
@@ -157,10 +165,11 @@
       </div>
       <nav class="flex gap-2 overflow-x-auto scrollbar-none px-4 py-3" id="mobileNav">
         <a href="#dashboard" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full grad-orange text-black"><i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i>Dashboard</a>
+        <a href="#bancos" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="landmark" class="w-3.5 h-3.5"></i>Bancos</a>
         <a href="#cartoes" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="credit-card" class="w-3.5 h-3.5"></i>Cartões</a>
         <a href="#alvos" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="target" class="w-3.5 h-3.5"></i>Metas</a>
-        <a href="#lancamentos" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="rocket" class="w-3.5 h-3.5"></i>Projetos</a>
         <a href="#contas" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="bell-ring" class="w-3.5 h-3.5"></i>Contas<span data-bill-badge class="hidden min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-magre-red text-white text-[9px] font-bold items-center justify-center"></span></a>
+        <a href="#lancamentos" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="rocket" class="w-3.5 h-3.5"></i>Lançar</a>
         <a href="#extrato" class="m-link shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full bg-white/5 text-magre-muted"><i data-lucide="receipt-text" class="w-3.5 h-3.5"></i>Extrato</a>
       </nav>
     </div>
@@ -179,22 +188,21 @@
             <span id="syncDot" class="w-2.5 h-2.5 rounded-full bg-magre-muted"></span>
             <span>
               <span id="syncText" class="block text-xs font-semibold">Modo local</span>
-              <span id="syncTime" class="block text-[11px] text-magre-muted">Conecte o Google Planilhas</span>
+              <span id="syncTime" class="block text-[11px] text-magre-muted max-w-[16rem] truncate">Conecte o Google Planilhas</span>
             </span>
             <span id="syncIconWrap"><i data-lucide="refresh-cw" class="w-4 h-4 text-magre-muted ml-1"></i></span>
           </button>
           <a href="#contas" title="Contas a pagar" class="glass relative w-12 h-12 rounded-2xl flex items-center justify-center text-magre-muted hover:text-magre-orange hover:border-magre-orange/40 transition"><i data-lucide="bell" class="w-5 h-5"></i><span data-bill-badge class="hidden absolute -top-1.5 -right-1.5 min-w-[1.3rem] h-[1.3rem] px-1 rounded-full bg-magre-red text-white text-[10px] font-bold items-center justify-center ring-2 ring-[#1A1A1A]"></span></a>
           <button data-open-settings title="Configurar Google Planilhas" class="glass w-12 h-12 rounded-2xl flex items-center justify-center text-magre-muted hover:text-magre-orange hover:border-magre-orange/40 transition"><i data-lucide="settings" class="w-5 h-5"></i></button>
-          <div class="w-12 h-12 rounded-2xl grad-orange flex items-center justify-center font-bold text-black shadow-glow">VC</div>
         </div>
       </header>
 
-      <!-- Alerta de contas -->
+      <!-- Alertas -->
+      <div id="scriptAlert" class="hidden"></div>
       <div id="billAlert" class="hidden"></div>
 
       <!-- ===================== SEÇÃO 1 · KPIs ===================== -->
       <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-5">
-        <!-- Saldo -->
         <div class="glass rounded-3xl p-6 relative overflow-hidden fade-in">
           <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-magre-orange/10 blur-2xl"></div>
           <div class="flex items-center justify-between">
@@ -205,9 +213,8 @@
             </div>
           </div>
           <p id="kpiSaldo" class="money mt-5 text-3xl font-extrabold text-white tracking-tight">R$ 0,00</p>
-          <p class="mt-2 text-xs text-magre-muted">Conta corrente Magre</p>
+          <p class="mt-2 text-xs text-magre-muted" id="kpiSaldoInfo">Soma das suas contas</p>
         </div>
-        <!-- Receitas -->
         <div class="glass rounded-3xl p-6 fade-in">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold tracking-wider uppercase text-magre-muted">Receitas do Mês</span>
@@ -216,16 +223,14 @@
           <p id="kpiReceitas" class="money mt-5 text-3xl font-extrabold text-magre-green tracking-tight">R$ 0,00</p>
           <p class="mt-2 text-xs text-magre-muted flex items-center gap-1"><i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-magre-green"></i><span id="kpiReceitasCount">0 entradas</span></p>
         </div>
-        <!-- Despesas -->
         <div class="glass rounded-3xl p-6 fade-in">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold tracking-wider uppercase text-magre-muted">Despesas Correntes</span>
             <div class="w-10 h-10 rounded-xl bg-magre-red/10 border border-magre-red/20 flex items-center justify-center"><i data-lucide="trending-down" class="w-5 h-5 text-magre-red"></i></div>
           </div>
           <p id="kpiDespesas" class="money mt-5 text-3xl font-extrabold text-magre-red tracking-tight">R$ 0,00</p>
-          <p class="mt-2 text-xs text-magre-muted flex items-center gap-1"><i data-lucide="arrow-down-right" class="w-3.5 h-3.5 text-magre-red"></i><span id="kpiDespesasInfo">Conta + cartões</span></p>
+          <p class="mt-2 text-xs text-magre-muted flex items-center gap-1"><i data-lucide="arrow-down-right" class="w-3.5 h-3.5 text-magre-red"></i><span id="kpiDespesasInfo">Contas + cartões</span></p>
         </div>
-        <!-- Limite -->
         <div class="glass rounded-3xl p-6 fade-in">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold tracking-wider uppercase text-magre-muted">Limite Total Utilizado</span>
@@ -237,10 +242,30 @@
         </div>
       </section>
 
+      <!-- ===================== CONTAS BANCÁRIAS ===================== -->
+      <section id="bancos" class="scroll-mt-32 panel rounded-3xl p-5 sm:p-7">
+        <div class="flex flex-wrap items-center gap-3 justify-between">
+          <div>
+            <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="landmark" class="w-5 h-5 text-magre-orange"></i>Contas Bancárias</h2>
+            <p class="text-xs text-magre-muted mt-1">Por onde você recebe e paga. Clique em uma conta para ver só os lançamentos dela.</p>
+          </div>
+          <button id="accNewBtn" class="grad-orange text-black text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-glow hover:brightness-110 transition"><i data-lucide="plus" class="w-4 h-4"></i>Nova conta</button>
+        </div>
+
+        <form id="accForm" class="hidden mt-5 grid grid-cols-2 lg:grid-cols-12 gap-3 p-4 rounded-2xl bg-black/20 border border-white/5 fade-in">
+          <input type="hidden" name="id" />
+          <div class="col-span-2 lg:col-span-4"><label class="label">Nome da conta</label><input class="input" name="nome" placeholder="Ex: Itaú Corrente, Carteira" required /></div>
+          <div class="col-span-2 sm:col-span-1 lg:col-span-3"><label class="label">Tipo</label><select class="input" name="tipo" id="accTipo"></select></div>
+          <div class="col-span-2 sm:col-span-1 lg:col-span-3"><label class="label">Saldo inicial (R$)</label><input class="input" name="saldoInicial" type="number" step="0.01" placeholder="0,00" /></div>
+          <div class="col-span-2 lg:col-span-2 flex items-end"><button id="accSubmit" class="w-full grad-orange text-black font-bold text-sm py-3 rounded-xl">Adicionar</button></div>
+          <p class="col-span-2 lg:col-span-12 text-[11px] text-magre-muted">O saldo inicial é quanto havia na conta antes do primeiro lançamento. O saldo atual é calculado automaticamente.</p>
+        </form>
+
+        <div id="accGrid" class="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+      </section>
+
       <!-- ===================== SEÇÃO 2 · CARTÕES & ALVOS ===================== -->
       <section class="grid grid-cols-1 xl:grid-cols-5 gap-6">
-
-        <!-- Cartões -->
         <div id="cartoes" class="scroll-mt-32 xl:col-span-3 panel rounded-3xl p-5 sm:p-7">
           <div class="flex flex-wrap items-center gap-3 justify-between">
             <div>
@@ -258,9 +283,9 @@
           </form>
 
           <div id="cardsGrid" class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+          <div id="cardsEmpty" class="hidden py-10 text-center text-magre-muted text-sm"><i data-lucide="credit-card" class="w-8 h-8 mx-auto mb-3 opacity-60"></i>Nenhum cartão cadastrado.</div>
         </div>
 
-        <!-- Alvos -->
         <div id="alvos" class="scroll-mt-32 xl:col-span-2 panel rounded-3xl p-5 sm:p-7">
           <div class="flex flex-wrap items-center gap-3 justify-between">
             <div>
@@ -278,6 +303,7 @@
           </form>
 
           <div id="goalsList" class="mt-6 space-y-4"></div>
+          <div id="goalsEmpty" class="hidden py-10 text-center text-magre-muted text-sm"><i data-lucide="target" class="w-8 h-8 mx-auto mb-3 opacity-60"></i>Nenhum alvo criado.</div>
         </div>
       </section>
 
@@ -295,7 +321,10 @@
           <div class="col-span-2 lg:col-span-4"><label class="label">Conta</label><input class="input" name="nome" placeholder="Ex: Energia, Internet, Aluguel" required /></div>
           <div class="lg:col-span-2"><label class="label">Dia do vencimento</label><input class="input" name="venc" type="number" min="1" max="31" placeholder="10" required /></div>
           <div class="lg:col-span-2"><label class="label">Valor <span class="normal-case tracking-normal font-normal">(opcional)</span></label><input class="input" name="valor" type="number" min="0" step="0.01" placeholder="Variável" /></div>
-          <div class="col-span-2 lg:col-span-2"><label class="label">Categoria</label><select class="input" name="cat" id="billCat"></select></div>
+          <div class="col-span-2 lg:col-span-2">
+            <label class="label">Categoria <button type="button" data-open-cats="conta" class="gear-link" title="Gerenciar categorias"><i data-lucide="settings-2" class="w-3.5 h-3.5"></i></button></label>
+            <select class="input" name="cat" id="billCat"></select>
+          </div>
           <div class="col-span-2 lg:col-span-2 flex items-end"><button class="w-full grad-orange text-black font-bold text-sm py-3 rounded-xl">Cadastrar</button></div>
           <label class="col-span-2 lg:col-span-12 flex items-center gap-2.5 text-xs text-magre-muted cursor-pointer select-none">
             <input type="checkbox" name="pagaMes" class="w-4 h-4 accent-[#FF6A00]" /> A deste mês já está paga (o primeiro lembrete será no próximo mês)
@@ -309,40 +338,40 @@
       <!-- ===================== SEÇÃO 3 · FORMULÁRIO ===================== -->
       <section id="lancamentos" class="scroll-mt-32 panel rounded-3xl p-5 sm:p-7 relative overflow-hidden">
         <div class="absolute -left-20 -bottom-24 w-72 h-72 rounded-full bg-magre-orange/10 blur-3xl pointer-events-none"></div>
-        <div class="relative flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="zap" class="w-5 h-5 text-magre-orange"></i>Lançamento Rápido</h2>
-            <p class="text-xs text-magre-muted mt-1">Registre receitas, despesas, gastos no cartão ou aportes em seus alvos.</p>
-          </div>
+        <div class="relative">
+          <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="zap" class="w-5 h-5 text-magre-orange"></i>Lançamento Rápido</h2>
+          <p class="text-xs text-magre-muted mt-1">Registre receitas, despesas, gastos no cartão, aportes ou transferências entre suas contas.</p>
         </div>
 
         <form id="txForm" class="relative mt-6 space-y-5">
-          <!-- Tipo -->
           <div>
             <span class="label">Tipo de lançamento</span>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-              <label class="type-chip cursor-pointer"><input type="radio" name="tipo" value="receita" class="sr-only" checked /><span class="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 py-3 rounded-xl border border-white/10 bg-white/[.03] hover:border-white/25 transition"><i data-lucide="arrow-down-left" class="w-4 h-4"></i>Receita</span></label>
-              <label class="type-chip cursor-pointer"><input type="radio" name="tipo" value="despesa" class="sr-only" /><span class="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 py-3 rounded-xl border border-white/10 bg-white/[.03] hover:border-white/25 transition"><i data-lucide="arrow-up-right" class="w-4 h-4"></i>Despesa Corrente</span></label>
-              <label class="type-chip cursor-pointer"><input type="radio" name="tipo" value="cartao" class="sr-only" /><span class="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 py-3 rounded-xl border border-white/10 bg-white/[.03] hover:border-white/25 transition"><i data-lucide="credit-card" class="w-4 h-4"></i>Gasto no Cartão</span></label>
-              <label class="type-chip cursor-pointer"><input type="radio" name="tipo" value="aporte" class="sr-only" /><span class="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 py-3 rounded-xl border border-white/10 bg-white/[.03] hover:border-white/25 transition"><i data-lucide="piggy-bank" class="w-4 h-4"></i>Aporte em Alvo</span></label>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-2.5">
+              <label class="type-chip cursor-pointer"><input type="radio" name="tipo" value="receita" class="sr-only" checked /><span class="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 py-3 rounded-xl border border-white/10 bg-white/[.03] hover:border-white/25 transition h-full"><i data-lucide="arrow-down-left" class="w-4 h-4"></i>Receita</span></label>
+              <label class="type-chip cursor-pointer"><input type="radio" name="tipo" value="despesa" class="sr-only" /><span class="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 py-3 rounded-xl border border-white/10 bg-white/[.03] hover:border-white/25 transition h-full"><i data-lucide="arrow-up-right" class="w-4 h-4"></i>Despesa</span></label>
+              <label class="type-chip cursor-pointer"><input type="radio" name="tipo" value="cartao" class="sr-only" /><span class="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 py-3 rounded-xl border border-white/10 bg-white/[.03] hover:border-white/25 transition h-full"><i data-lucide="credit-card" class="w-4 h-4"></i>Gasto no Cartão</span></label>
+              <label class="type-chip cursor-pointer"><input type="radio" name="tipo" value="aporte" class="sr-only" /><span class="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 py-3 rounded-xl border border-white/10 bg-white/[.03] hover:border-white/25 transition h-full"><i data-lucide="piggy-bank" class="w-4 h-4"></i>Aporte em Alvo</span></label>
+              <label class="type-chip cursor-pointer col-span-2 md:col-span-1"><input type="radio" name="tipo" value="transferencia" class="sr-only" /><span class="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 py-3 rounded-xl border border-white/10 bg-white/[.03] hover:border-white/25 transition h-full"><i data-lucide="arrow-left-right" class="w-4 h-4"></i>Transferência</span></label>
             </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4">
-            <div class="lg:col-span-4"><label class="label" for="fDesc">Descrição</label><input id="fDesc" name="desc" class="input" placeholder="Ex: Supermercado, Salário..." required /></div>
-            <div class="lg:col-span-2">
+            <div class="sm:col-span-2 lg:col-span-6"><label class="label" for="fDesc">Descrição</label><input id="fDesc" name="desc" class="input" placeholder="Ex: Pix para João, Feira, Salário..." required /></div>
+            <div class="lg:col-span-3">
               <label class="label" for="fValor">Valor (R$)</label>
               <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-magre-orange font-semibold">R$</span><input id="fValor" name="valor" type="number" min="0.01" step="0.01" class="input pl-11" placeholder="0,00" required /></div>
             </div>
-            <div class="lg:col-span-2"><label class="label" for="fData">Data</label><input id="fData" name="data" type="date" class="input" required /></div>
-            <div class="lg:col-span-2"><label class="label" for="fCat">Categoria</label><select id="fCat" name="cat" class="input"></select></div>
-            <div class="lg:col-span-2">
-              <label class="label" for="fOrigem" id="fOrigemLabel">Origem / Pagamento</label>
-              <select id="fOrigem" name="origem" class="input"></select>
+            <div class="lg:col-span-3"><label class="label" for="fData">Data</label><input id="fData" name="data" type="date" class="input" required /></div>
+
+            <div id="wrapCat" class="lg:col-span-4">
+              <label class="label" for="fCat">Categoria <button type="button" id="fCatGear" data-open-cats class="gear-link" title="Gerenciar categorias"><i data-lucide="settings-2" class="w-3.5 h-3.5"></i></button></label>
+              <select id="fCat" name="cat" class="input"></select>
             </div>
+            <div id="wrapOrigem" class="lg:col-span-4"><label class="label" for="fOrigem" id="fOrigemLabel">Origem</label><select id="fOrigem" name="origem" class="input"></select></div>
+            <div id="wrapExtra" class="lg:col-span-4"><label class="label" for="fExtra" id="fExtraLabel">Destino</label><select id="fExtra" name="extra" class="input"></select></div>
+            <div id="wrapForma" class="lg:col-span-4"><label class="label" for="fForma">Forma de pagamento</label><select id="fForma" name="forma" class="input"></select></div>
           </div>
 
-          <!-- Pré-visualização dinâmica -->
           <div class="flex flex-col md:flex-row md:items-center gap-4 justify-between pt-1">
             <div id="txPreview" class="text-xs text-magre-muted flex items-center gap-2 min-h-[1.5rem]"></div>
             <button type="submit" class="grad-orange text-black font-bold text-sm px-8 py-3.5 rounded-xl shadow-glow hover:brightness-110 active:scale-[.98] transition flex items-center justify-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Registrar lançamento</button>
@@ -352,15 +381,17 @@
 
       <!-- ===================== SEÇÃO 4 · EXTRATO ===================== -->
       <section id="extrato" class="scroll-mt-32 panel rounded-3xl p-5 sm:p-7">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="receipt-text" class="w-5 h-5 text-magre-orange"></i>Últimas Movimentações</h2>
-            <p class="text-xs text-magre-muted mt-1"><span id="txCount">0</span> lançamentos · <span id="filterLabel">Todas as origens</span></p>
+        <div class="flex flex-col gap-4">
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="receipt-text" class="w-5 h-5 text-magre-orange"></i>Últimas Movimentações</h2>
+              <p class="text-xs text-magre-muted mt-1"><span id="txCount">0</span> lançamentos · <span id="filterLabel">Todas as origens</span></p>
+            </div>
+            <select id="formaFilter" class="input input-sm w-auto" title="Filtrar por forma de pagamento"></select>
           </div>
-          <div class="flex gap-2 overflow-x-auto scrollbar-none" id="filters"></div>
+          <div class="flex gap-2 overflow-x-auto scrollbar-none pb-1" id="filters"></div>
         </div>
 
-        <!-- Tabela Desktop -->
         <div class="hidden md:block mt-6 overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
@@ -376,7 +407,6 @@
             <tbody id="txTable"></tbody>
           </table>
         </div>
-        <!-- Lista Mobile -->
         <ul id="txList" class="md:hidden mt-5 space-y-2.5"></ul>
 
         <div id="txEmpty" class="hidden py-12 text-center text-magre-muted text-sm">
@@ -385,21 +415,21 @@
       </section>
 
       <footer class="pt-2 pb-8 text-center text-[11px] text-magre-muted/70">
-        © 2026 MAGRE BANK · Seu banco. Mais possibilidades. — Ambiente de demonstração
+        © 2026 MAGRE BANK · Seu banco. Mais possibilidades.
       </footer>
     </main>
   </div>
 </div>
 
 <!-- Toast -->
-<div id="toast" class="toast fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-24 opacity-0 z-50 glass rounded-2xl px-5 py-3.5 flex items-center gap-3 text-sm font-medium shadow-soft">
-  <span class="w-8 h-8 rounded-lg grad-orange flex items-center justify-center"><i data-lucide="check" class="w-4 h-4 text-black"></i></span>
+<div id="toast" class="toast fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-24 opacity-0 z-[70] glass rounded-2xl px-5 py-3.5 flex items-center gap-3 text-sm font-medium shadow-soft max-w-[92vw]">
+  <span class="w-8 h-8 rounded-lg grad-orange flex items-center justify-center shrink-0"><i data-lucide="check" class="w-4 h-4 text-black"></i></span>
   <span id="toastText">Lançamento registrado</span>
 </div>
 
 <!-- Modal: Pagar conta -->
-<div id="payModal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
-  <div data-close-pay class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+<div id="payModal" class="modal hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
+  <div data-close-modal class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
   <form id="payForm" class="relative w-full max-w-md panel rounded-3xl p-6 sm:p-7 shadow-soft fade-in">
     <div class="flex items-start gap-3">
       <div id="payIcon" class="w-11 h-11 rounded-xl grad-orange flex items-center justify-center shrink-0"></div>
@@ -407,15 +437,13 @@
         <h3 class="text-lg font-bold truncate" id="payTitle">Pagar conta</h3>
         <p class="text-xs text-magre-muted mt-1" id="paySub"></p>
       </div>
-      <button type="button" data-close-pay class="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-magre-muted"><i data-lucide="x" class="w-4 h-4"></i></button>
+      <button type="button" data-close-modal class="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-magre-muted"><i data-lucide="x" class="w-4 h-4"></i></button>
     </div>
     <div class="mt-6 grid grid-cols-2 gap-4">
-      <div class="col-span-2 sm:col-span-1">
-        <label class="label" for="payValor">Valor pago (R$)</label>
-        <input id="payValor" class="input" type="number" min="0.01" step="0.01" placeholder="0,00" required />
-      </div>
+      <div class="col-span-2 sm:col-span-1"><label class="label" for="payValor">Valor pago (R$)</label><input id="payValor" class="input" type="number" min="0.01" step="0.01" placeholder="0,00" required /></div>
       <div class="col-span-2 sm:col-span-1"><label class="label" for="payData">Data do pagamento</label><input id="payData" class="input" type="date" required /></div>
-      <div class="col-span-2"><label class="label" for="payOrigem">Pago com</label><select id="payOrigem" class="input"></select></div>
+      <div class="col-span-2 sm:col-span-1"><label class="label" for="payOrigem">Pago com</label><select id="payOrigem" class="input"></select></div>
+      <div class="col-span-2 sm:col-span-1" id="payFormaWrap"><label class="label" for="payForma">Forma</label><select id="payForma" class="input"></select></div>
       <label class="col-span-2 flex items-start gap-2.5 text-xs text-magre-muted cursor-pointer select-none">
         <input type="checkbox" id="payUpdate" class="w-4 h-4 mt-0.5 accent-[#FF6A00]" />
         <span id="payUpdateLabel">Usar este valor como padrão nos próximos meses</span>
@@ -425,9 +453,35 @@
   </form>
 </div>
 
+<!-- Modal: Categorias -->
+<div id="catModal" class="modal hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
+  <div data-close-modal class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+  <div class="relative w-full max-w-lg panel rounded-3xl p-6 sm:p-7 shadow-soft fade-in max-h-[90vh] flex flex-col">
+    <div class="flex items-start gap-3">
+      <div class="w-11 h-11 rounded-xl grad-orange flex items-center justify-center shrink-0"><i data-lucide="tags" class="w-5 h-5 text-black"></i></div>
+      <div class="flex-1">
+        <h3 class="text-lg font-bold">Categorias</h3>
+        <p class="text-xs text-magre-muted mt-1">Crie, renomeie ou remova. Ao renomear, os lançamentos antigos são atualizados.</p>
+      </div>
+      <button type="button" data-close-modal class="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-magre-muted"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div id="catTabs" class="mt-5 flex gap-2 overflow-x-auto scrollbar-none pb-1"></div>
+    <div id="catList" class="mt-4 space-y-2 overflow-y-auto pr-1 flex-1 min-h-[8rem]"></div>
+    <form id="catAddForm" class="mt-4 flex gap-2">
+      <input id="catNew" class="input" placeholder="Nova categoria" maxlength="40" />
+      <button class="shrink-0 px-4 rounded-xl border border-magre-orange/40 text-magre-orange hover:bg-magre-orange/10 text-sm font-bold flex items-center gap-1.5"><i data-lucide="plus" class="w-4 h-4"></i>Adicionar</button>
+    </form>
+    <p id="catMsg" class="text-xs text-magre-red min-h-[1rem] mt-2"></p>
+    <div class="mt-3 flex gap-2.5 justify-end">
+      <button type="button" data-close-modal class="text-xs font-semibold px-4 py-3 rounded-xl border border-white/10 text-magre-muted hover:text-magre-light transition">Cancelar</button>
+      <button type="button" id="catSave" class="grad-orange text-black font-bold text-sm px-6 py-3 rounded-xl shadow-glow hover:brightness-110 transition">Salvar categorias</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Google Planilhas -->
-<div id="settingsModal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
-  <div data-close-settings class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+<div id="settingsModal" class="modal hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
+  <div data-close-modal class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
   <form id="settingsForm" class="relative w-full max-w-lg panel rounded-3xl p-6 sm:p-7 shadow-soft fade-in">
     <div class="flex items-start gap-3">
       <div class="w-11 h-11 rounded-xl grad-orange flex items-center justify-center shrink-0"><i data-lucide="file-spreadsheet" class="w-5 h-5 text-black"></i></div>
@@ -435,7 +489,7 @@
         <h3 class="text-lg font-bold">Conectar ao Google Planilhas</h3>
         <p class="text-xs text-magre-muted mt-1 leading-relaxed">Cole a URL do App da Web (termina em <b>/exec</b>) e a chave definida no script. Ficam salvas só neste navegador.</p>
       </div>
-      <button type="button" data-close-settings class="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-magre-muted"><i data-lucide="x" class="w-4 h-4"></i></button>
+      <button type="button" data-close-modal class="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-magre-muted"><i data-lucide="x" class="w-4 h-4"></i></button>
     </div>
     <div class="mt-6 space-y-4">
       <div><label class="label" for="cfgUrl">URL do App da Web</label><input id="cfgUrl" class="input" type="url" placeholder="https://script.google.com/macros/s/.../exec" required /></div>
@@ -465,9 +519,11 @@
 
 <script>
 /* =========================================================
-   MAGRE BANK · Lógica local de demonstração
+   MAGRE BANK · Lógica do app
    ========================================================= */
 const STORAGE_KEY = 'magrebank_demo_v1';
+const DIRTY_KEY = 'magrebank_pending_sync';
+const SCRIPT_VERSION_REQUIRED = 2;
 const today = new Date();
 const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 const daysAgo = n => { const d = new Date(today); d.setDate(d.getDate() - n); return iso(d); };
@@ -477,27 +533,42 @@ const dueDate = (cycle, day) => { const [y, m] = cycle.split('-').map(Number); r
 const fmtCycle = c => { const [y, m] = c.split('-'); return `${m}/${y}`; };
 
 const BANK_TINTS = {
-  nubank:    'rgba(138, 5, 190, .55)',
-  santander: 'rgba(236, 0, 0, .45)',
-  'itaú':    'rgba(255, 120, 0, .45)',
-  itau:      'rgba(255, 120, 0, .45)',
-  inter:     'rgba(255, 122, 0, .45)',
-  'c6':      'rgba(180, 180, 180, .30)',
-  bradesco:  'rgba(204, 9, 47, .45)',
-  magre:     'rgba(255, 106, 0, .55)'
+  nubank: 'rgba(138, 5, 190, .55)', santander: 'rgba(236, 0, 0, .45)', 'itaú': 'rgba(255, 120, 0, .45)', itau: 'rgba(255, 120, 0, .45)',
+  inter: 'rgba(255, 122, 0, .45)', c6: 'rgba(180, 180, 180, .30)', bradesco: 'rgba(204, 9, 47, .45)', magre: 'rgba(255, 106, 0, .55)'
 };
 
-const CATEGORIAS = {
-  receita: ['Salário', 'Freelance', 'Rendimentos', 'Vendas', 'Outros'],
-  despesa: ['Moradia', 'Alimentação', 'Transporte', 'Saúde', 'Educação', 'Contas', 'Outros'],
-  cartao:  ['Compras', 'Alimentação', 'Assinaturas', 'Viagem', 'Lazer', 'Tecnologia', 'Outros'],
-  aporte:  ['Reserva', 'Ações', 'Renda Fixa', 'FIIs', 'Projeto', 'Outros']
+const DEFAULT_CATS = {
+  receita: ['Salário', 'Freelance', 'Rendimentos', 'Vendas', 'Reembolso', 'Outros'],
+  despesa: ['Moradia', 'Alimentação', 'Mercado', 'Transporte', 'Saúde', 'Educação', 'Lazer', 'Contas', 'Outros'],
+  cartao: ['Compras', 'Alimentação', 'Assinaturas', 'Viagem', 'Lazer', 'Tecnologia', 'Outros'],
+  aporte: ['Reserva', 'Ações', 'Renda Fixa', 'FIIs', 'Projeto', 'Outros'],
+  conta: ['Aluguel', 'Condomínio', 'Água', 'Energia', 'Gás', 'Internet', 'Telefone', 'Assinaturas', 'Educação', 'Saúde', 'Seguros', 'Impostos', 'Outros']
 };
+const CAT_TABS = [['receita', 'Receitas'], ['despesa', 'Despesas'], ['cartao', 'Cartão'], ['aporte', 'Aportes'], ['conta', 'Contas a pagar']];
+const FORMAS = {
+  receita: ['Pix', 'Transferência', 'Depósito', 'Dinheiro', 'Boleto', 'Outros'],
+  despesa: ['Pix', 'Débito', 'Dinheiro', 'Boleto', 'Transferência', 'Outros'],
+  transferencia: ['Pix', 'TED', 'Saque', 'Depósito', 'Outros']
+};
+const ALL_FORMAS = [...new Set([...FORMAS.despesa, ...FORMAS.receita, ...FORMAS.transferencia])];
+const ACC_TYPES = {
+  corrente: { label: 'Conta Corrente', icon: 'landmark' },
+  digital:  { label: 'Conta Digital', icon: 'smartphone' },
+  poupanca: { label: 'Poupança', icon: 'vault' },
+  carteira: { label: 'Carteira · Dinheiro', icon: 'wallet' }
+};
+const BILL_ICONS = { 'Aluguel': 'home', 'Condomínio': 'building-2', 'Água': 'droplets', 'Energia': 'zap', 'Gás': 'flame', 'Internet': 'wifi', 'Telefone': 'smartphone', 'Assinaturas': 'tv', 'Educação': 'graduation-cap', 'Saúde': 'heart-pulse', 'Seguros': 'shield', 'Impostos': 'landmark', 'Outros': 'receipt' };
+const cloneCats = c => JSON.parse(JSON.stringify(c));
 
 function seed() {
   return {
-    saldoInicial: 4200,
     hidden: false,
+    accounts: [
+      { id: 'a1', nome: 'Conta Corrente Magre', tipo: 'corrente', saldoInicial: 4200 },
+      { id: 'a2', nome: 'Nubank Conta', tipo: 'digital', saldoInicial: 1500 },
+      { id: 'a3', nome: 'Carteira', tipo: 'carteira', saldoInicial: 250 }
+    ],
+    categories: cloneCats(DEFAULT_CATS),
     cards: [
       { id: 'c1', banco: 'Magre',     limite: 15000, venc: 10, bandeira: 'Visa Infinite', final: '4821' },
       { id: 'c2', banco: 'Nubank',    limite: 8000,  venc: 7,  bandeira: 'Mastercard',    final: '1093' },
@@ -510,22 +581,24 @@ function seed() {
       { id: 'g3', nome: 'Novo Projeto X', alvo: 20000, guardado: 4600, icone: 'rocket' }
     ],
     tx: [
-      { id: 't1', desc: 'Salário', valor: 9800, data: daysAgo(2), tipo: 'receita', cat: 'Salário', origem: 'conta' },
-      { id: 't2', desc: 'Aluguel do apartamento', valor: 2300, data: daysAgo(2), tipo: 'despesa', cat: 'Moradia', origem: 'conta' },
+      { id: 't1', desc: 'Salário', valor: 9800, data: daysAgo(2), tipo: 'receita', cat: 'Salário', origem: 'a1', forma: 'Transferência' },
+      { id: 't2', desc: 'Aluguel do apartamento', valor: 2300, data: daysAgo(2), tipo: 'despesa', cat: 'Moradia', origem: 'a1', forma: 'Pix' },
       { id: 't3', desc: 'Supermercado Pão de Açúcar', valor: 486.9, data: daysAgo(3), tipo: 'cartao', cat: 'Alimentação', origem: 'c2' },
       { id: 't4', desc: 'Passagem aérea · SP → POA', valor: 1240, data: daysAgo(4), tipo: 'cartao', cat: 'Viagem', origem: 'c3' },
-      { id: 't5', desc: 'Aporte mensal da reserva', valor: 800, data: daysAgo(5), tipo: 'aporte', cat: 'Reserva', origem: 'g1' },
+      { id: 't5', desc: 'Aporte mensal da reserva', valor: 800, data: daysAgo(5), tipo: 'aporte', cat: 'Reserva', origem: 'g1', acc: 'a1' },
       { id: 't6', desc: 'Notebook de trabalho', valor: 3890, data: daysAgo(6), tipo: 'cartao', cat: 'Tecnologia', origem: 'c1' },
-      { id: 't7', desc: 'Projeto freelance UI', valor: 2400, data: daysAgo(7), tipo: 'receita', cat: 'Freelance', origem: 'conta' },
-      { id: 't8', desc: 'Conta de energia', valor: 312.45, data: daysAgo(8), tipo: 'despesa', cat: 'Contas', origem: 'conta' },
+      { id: 't7', desc: 'Projeto freelance UI', valor: 2400, data: daysAgo(7), tipo: 'receita', cat: 'Freelance', origem: 'a2', forma: 'Pix' },
+      { id: 't8', desc: 'Conta de energia', valor: 312.45, data: daysAgo(8), tipo: 'despesa', cat: 'Contas', origem: 'a1', forma: 'Boleto' },
       { id: 't9', desc: 'Streaming + música', valor: 89.8, data: daysAgo(9), tipo: 'cartao', cat: 'Assinaturas', origem: 'c4' },
-      { id: 't10', desc: 'Restaurante · jantar', valor: 268, data: daysAgo(10), tipo: 'cartao', cat: 'Lazer', origem: 'c2' }
+      { id: 't10', desc: 'Restaurante · jantar', valor: 268, data: daysAgo(10), tipo: 'cartao', cat: 'Lazer', origem: 'c2' },
+      { id: 't11', desc: 'Saque para a carteira', valor: 200, data: daysAgo(3), tipo: 'transferencia', cat: 'Transferência', origem: 'a1', destino: 'a3', forma: 'Saque' },
+      { id: 't12', desc: 'Feira de domingo', valor: 64.5, data: daysAgo(1), tipo: 'despesa', cat: 'Mercado', origem: 'a3', forma: 'Dinheiro' },
+      { id: 't13', desc: 'Pix para João (churrasco)', valor: 150, data: daysAgo(1), tipo: 'despesa', cat: 'Lazer', origem: 'a2', forma: 'Pix' }
     ],
     bills: seedBills()
   };
 }
 
-/* Contas de exemplo, com datas relativas a hoje para mostrar todos os status */
 function seedBills() {
   const d = today.getDate(), atual = ym(today), anterior = addMonths(atual, -1);
   return [
@@ -537,22 +610,70 @@ function seedBills() {
   ];
 }
 
+/* Garante a estrutura atual e migra dados de versões anteriores. Retorna true se algo mudou. */
+function normalize(s) {
+  let changed = false;
+  ['cards', 'goals', 'tx', 'bills'].forEach(k => { if (!Array.isArray(s[k])) { s[k] = []; changed = true; } });
+
+  if (!Array.isArray(s.accounts) || !s.accounts.length) {
+    s.accounts = [{ id: 'a1', nome: 'Conta Corrente Magre', tipo: 'corrente', saldoInicial: Number(s.saldoInicial) || 0 }];
+    changed = true;
+  }
+  const first = s.accounts[0].id;
+  const isAcc = id => s.accounts.some(a => a.id === id);
+  s.tx.forEach(t => {
+    if ((t.tipo === 'receita' || t.tipo === 'despesa') && !isAcc(t.origem)) { t.origem = first; changed = true; }
+    if (t.tipo === 'aporte' && !isAcc(t.acc)) { t.acc = first; changed = true; }
+  });
+
+  const noCats = !s.categories || Object.keys(DEFAULT_CATS).every(k => !(s.categories[k] || []).length);
+  if (noCats) {
+    s.categories = cloneCats(DEFAULT_CATS);
+    // na primeira migração, preserva categorias já usadas nos lançamentos
+    s.tx.forEach(t => { const k = t.tipo === 'transferencia' ? null : (t.conta ? 'conta' : t.tipo); if (k && t.cat && !s.categories[k].includes(t.cat)) s.categories[k].push(t.cat); });
+    s.bills.forEach(b => { if (b.cat && !s.categories.conta.includes(b.cat)) s.categories.conta.push(b.cat); });
+    changed = true;
+  } else {
+    Object.keys(DEFAULT_CATS).forEach(k => { if (!(s.categories[k] || []).length) { s.categories[k] = [...DEFAULT_CATS[k]]; changed = true; } });
+  }
+  delete s.saldoInicial;
+  return changed;
+}
+
 let state;
 try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || seed(); } catch (e) { state = seed(); }
-if (!Array.isArray(state.bills)) state.bills = seedBills();
-let activeFilter = 'all';
+normalize(state);
+let activeFilter = 'all', activeForma = 'all';
 
 const save = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} };
 const $ = s => document.querySelector(s);
-const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-const fmtDate = s => { const [y, m, d] = s.split('-'); return `${d}/${m}/${y}`; };
+const brl = v => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const fmtDate = s => { const [y, m, d] = String(s).split('-'); return `${d}/${m}/${y}`; };
 const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 const tintOf = banco => BANK_TINTS[banco.toLowerCase()] || 'rgba(255,106,0,.40)';
 const cardById = id => state.cards.find(c => c.id === id);
 const goalById = id => state.goals.find(g => g.id === id);
+const accById = id => state.accounts.find(a => a.id === id);
+const accName = id => (accById(id) || {}).nome || 'Conta removida';
+const accIcon = id => (ACC_TYPES[(accById(id) || {}).tipo] || ACC_TYPES.corrente).icon;
 const usedOf = id => state.tx.filter(t => t.tipo === 'cartao' && t.origem === id).reduce((s, t) => s + t.valor, 0);
 const icons = () => window.lucide && lucide.createIcons();
 const money = v => state.hidden ? 'R$ ••••••' : brl(v);
+const optList = (arr, sel) => arr.map(v => `<option${v === sel ? ' selected' : ''}>${escapeHtml(v)}</option>`).join('');
+const accOptions = (exclude) => state.accounts.filter(a => a.id !== exclude).map(a => `<option value="${a.id}">${escapeHtml(a.nome)} · ${brl(accBalance(a.id))}</option>`).join('');
+
+function accBalance(id) {
+  const a = accById(id);
+  let v = a ? Number(a.saldoInicial) || 0 : 0;
+  for (const t of state.tx) {
+    if (t.tipo === 'receita' && t.origem === id) v += t.valor;
+    else if (t.tipo === 'despesa' && t.origem === id) v -= t.valor;
+    else if (t.tipo === 'aporte' && t.acc === id) v -= t.valor;
+    else if (t.tipo === 'transferencia') { if (t.origem === id) v -= t.valor; if (t.destino === id) v += t.valor; }
+  }
+  return Math.round(v * 100) / 100;
+}
+const accUsage = id => state.tx.filter(t => t.origem === id || t.destino === id || t.acc === id).length;
 
 /* ---------- Logo ---------- */
 document.querySelectorAll('.logo-m').forEach(el => el.appendChild($('#logoTpl').content.cloneNode(true)));
@@ -562,27 +683,25 @@ $('#todayLabel').textContent = today.toLocaleDateString('pt-BR', { weekday: 'lon
 function renderKPIs() {
   const m = today.getMonth(), y = today.getFullYear();
   const inMonth = t => { const d = new Date(t.data + 'T00:00'); return d.getMonth() === m && d.getFullYear() === y; };
-  const sum = (arr) => arr.reduce((s, t) => s + t.valor, 0);
+  const sum = arr => arr.reduce((s, t) => s + t.valor, 0);
 
-  const receitasAll = sum(state.tx.filter(t => t.tipo === 'receita'));
-  const saidasConta = sum(state.tx.filter(t => t.tipo === 'despesa' || t.tipo === 'aporte'));
-  const saldo = state.saldoInicial + receitasAll - saidasConta;
-
+  const saldo = state.accounts.reduce((s, a) => s + accBalance(a.id), 0);
   const recMes = state.tx.filter(t => t.tipo === 'receita' && inMonth(t));
   const despMes = state.tx.filter(t => (t.tipo === 'despesa' || t.tipo === 'cartao') && inMonth(t));
   const despConta = sum(despMes.filter(t => t.tipo === 'despesa'));
   const despCartao = sum(despMes.filter(t => t.tipo === 'cartao'));
-
   const limTotal = state.cards.reduce((s, c) => s + c.limite, 0);
   const limUsado = state.cards.reduce((s, c) => s + usedOf(c.id), 0);
   const pct = limTotal ? Math.min(100, (limUsado / limTotal) * 100) : 0;
+  const n = state.accounts.length;
 
   $('#kpiSaldo').textContent = money(saldo);
   $('#kpiSaldo').classList.toggle('text-magre-red', saldo < 0);
+  $('#kpiSaldoInfo').textContent = `Soma de ${n} ${n === 1 ? 'conta' : 'contas'}`;
   $('#kpiReceitas').textContent = money(sum(recMes));
   $('#kpiReceitasCount').textContent = `${recMes.length} ${recMes.length === 1 ? 'entrada' : 'entradas'} este mês`;
   $('#kpiDespesas').textContent = money(despConta + despCartao);
-  $('#kpiDespesasInfo').textContent = state.hidden ? 'Conta + cartões' : `Conta ${brl(despConta)} · Cartões ${brl(despCartao)}`;
+  $('#kpiDespesasInfo').textContent = state.hidden ? 'Contas + cartões' : `Contas ${brl(despConta)} · Cartões ${brl(despCartao)}`;
   $('#kpiLimite').textContent = money(limUsado);
   $('#kpiLimiteTotal').textContent = money(limTotal);
   $('#kpiLimitePct').textContent = pct.toFixed(1).replace('.', ',') + '%';
@@ -590,9 +709,80 @@ function renderKPIs() {
   requestAnimationFrame(() => $('#kpiLimiteBar').style.width = pct + '%');
 }
 
+/* ---------- Contas bancárias ---------- */
+function renderAccounts() {
+  $('#accGrid').innerHTML = state.accounts.map(a => {
+    const bal = accBalance(a.id);
+    const t = ACC_TYPES[a.tipo] || ACC_TYPES.corrente;
+    const n = accUsage(a.id);
+    return `
+    <div role="button" tabindex="0" data-acc="${a.id}" class="${activeFilter === a.id ? 'selected' : ''} cursor-pointer rounded-2xl p-4 bg-gradient-to-br from-[#121212] to-[#1E1E1E] border border-white/10 hover:border-white/20 hover:-translate-y-0.5 transition fade-in">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-xl ${a.tipo === 'carteira' ? 'bg-magre-green/10 text-magre-green' : 'bg-magre-orange/10 text-magre-orange'} flex items-center justify-center shrink-0"><i data-lucide="${t.icon}" class="w-5 h-5"></i></div>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-semibold truncate">${escapeHtml(a.nome)}</p>
+          <p class="text-[11px] text-magre-muted">${t.label}</p>
+        </div>
+        <button data-acc-edit="${a.id}" class="w-7 h-7 rounded-lg text-magre-muted hover:text-magre-orange hover:bg-white/5 flex items-center justify-center" title="Editar"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+        <button data-acc-del="${a.id}" class="w-7 h-7 rounded-lg text-magre-muted hover:text-magre-red hover:bg-magre-red/10 flex items-center justify-center" title="Excluir"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+      </div>
+      <p class="mt-4 text-[11px] text-magre-muted">Saldo atual</p>
+      <p class="text-xl font-extrabold ${bal < 0 ? 'text-magre-red' : ''}">${money(bal)}</p>
+      <p class="mt-1 text-[11px] text-magre-muted">${n} ${n === 1 ? 'lançamento' : 'lançamentos'} · inicial ${money(a.saldoInicial || 0)}</p>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('[data-acc]').forEach(el => {
+    const go = () => setFilter(activeFilter === el.dataset.acc ? 'all' : el.dataset.acc);
+    el.addEventListener('click', go);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  });
+  document.querySelectorAll('[data-acc-edit]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openAccForm(b.dataset.accEdit); }));
+  document.querySelectorAll('[data-acc-del]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const a = accById(b.dataset.accDel);
+    if (state.accounts.length === 1) return toast('Você precisa de pelo menos uma conta', true);
+    if (accUsage(a.id)) return toast(`"${a.nome}" tem lançamentos. Renomeie em vez de excluir.`, true);
+    if (!confirm(`Excluir a conta "${a.nome}"?`)) return;
+    state.accounts = state.accounts.filter(x => x.id !== a.id);
+    if (activeFilter === a.id) activeFilter = 'all';
+    commit(); toast('Conta excluída');
+  }));
+}
+
+$('#accTipo').innerHTML = Object.entries(ACC_TYPES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
+function openAccForm(id) {
+  const f = $('#accForm'), a = id ? accById(id) : null;
+  f.reset();
+  f.id.value = a ? a.id : '';
+  f.nome.value = a ? a.nome : '';
+  f.tipo.value = a ? a.tipo : 'corrente';
+  f.saldoInicial.value = a ? a.saldoInicial : '';
+  $('#accSubmit').textContent = a ? 'Salvar' : 'Adicionar';
+  f.classList.remove('hidden');
+  f.nome.focus();
+}
+$('#accNewBtn').addEventListener('click', () => {
+  const f = $('#accForm');
+  if (!f.classList.contains('hidden') && !f.id.value) { f.classList.add('hidden'); return; }
+  openAccForm(null);
+});
+$('#accForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target, nome = f.nome.value.trim();
+  if (!nome) return;
+  const dados = { nome, tipo: f.tipo.value, saldoInicial: parseFloat(f.saldoInicial.value) || 0 };
+  if (f.id.value) Object.assign(accById(f.id.value), dados);
+  else state.accounts.push({ id: uid('a'), ...dados });
+  const editado = !!f.id.value;
+  f.reset(); f.classList.add('hidden');
+  commit(); toast(editado ? `Conta "${nome}" atualizada` : `Conta "${nome}" adicionada`);
+});
+
 /* ---------- Cartões ---------- */
 function renderCards() {
   const grid = $('#cardsGrid');
+  $('#cardsEmpty').classList.toggle('hidden', state.cards.length > 0);
   grid.innerHTML = state.cards.map(c => {
     const used = usedOf(c.id);
     const disp = Math.max(0, c.limite - used);
@@ -612,7 +802,7 @@ function renderCards() {
       <div class="relative mt-5 flex items-center gap-3">
         <div class="w-9 h-7 rounded-md bg-gradient-to-br from-[#d9b46a] to-[#8a6a2c] opacity-90 relative overflow-hidden"><div class="absolute inset-x-0 top-1/2 h-px bg-black/30"></div><div class="absolute inset-y-0 left-1/2 w-px bg-black/30"></div></div>
         <i data-lucide="wifi" class="w-4 h-4 rotate-90 text-magre-muted"></i>
-        <p class="ml-auto text-xs tracking-[.25em] text-magre-light/80 font-medium">•••• ${c.final}</p>
+        <p class="ml-auto text-xs tracking-[.25em] text-magre-light/80 font-medium">•••• ${escapeHtml(c.final || '')}</p>
       </div>
       <div class="relative mt-5">
         <div class="flex justify-between text-[11px] text-magre-muted"><span>Disponível</span><span>${pct.toFixed(0)}% usado</span></div>
@@ -643,6 +833,7 @@ function renderCards() {
 /* ---------- Alvos ---------- */
 function renderGoals() {
   const list = $('#goalsList');
+  $('#goalsEmpty').classList.toggle('hidden', state.goals.length > 0);
   list.innerHTML = state.goals.map(g => {
     const pct = Math.min(100, (g.guardado / g.alvo) * 100);
     const done = pct >= 100;
@@ -670,196 +861,24 @@ function renderGoals() {
   }).join('');
 
   list.querySelectorAll('[data-quick]').forEach(b => b.addEventListener('click', () => {
-    const g = goalById(b.dataset.quick); const v = Number(b.dataset.v);
-    addTx({ desc: 'Aporte rápido · ' + g.nome, valor: v, data: iso(today), tipo: 'aporte', cat: 'Reserva', origem: g.id });
-    toast(`${brl(v)} aportados em "${g.nome}"`);
+    const g = goalById(b.dataset.quick), v = Number(b.dataset.v), acc = state.accounts[0];
+    addTx({ desc: 'Aporte rápido · ' + g.nome, valor: v, data: iso(today), tipo: 'aporte', cat: state.categories.aporte[0], origem: g.id, acc: acc.id });
+    toast(`${brl(v)} de "${acc.nome}" aportados em "${g.nome}"`);
   }));
   animateBars(list);
 }
 
-/* ---------- Extrato ---------- */
-function originBadge(t) {
-  if (t.tipo === 'receita') return `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-magre-green/10 text-magre-green border border-magre-green/20"><i data-lucide="arrow-down-left" class="w-3 h-3"></i>Receita</span>`;
-  if (t.tipo === 'despesa') return `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-magre-red/10 text-magre-red border border-magre-red/20"><i data-lucide="landmark" class="w-3 h-3"></i>Conta Corrente</span>`;
-  if (t.tipo === 'cartao') {
-    const c = cardById(t.origem);
-    const name = c ? 'Cartão ' + c.banco : 'Cartão removido';
-    return `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full grad-orange text-black"><i data-lucide="credit-card" class="w-3 h-3"></i>${escapeHtml(name)}</span>`;
-  }
-  const g = goalById(t.origem);
-  return `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-magre-orange/10 text-magre-orange2 border border-magre-orange/30"><i data-lucide="piggy-bank" class="w-3 h-3"></i>${escapeHtml(g ? g.nome : 'Aporte')}</span>`;
-}
-const txIcon = t => ({ receita: 'arrow-down-left', despesa: 'arrow-up-right', cartao: 'credit-card', aporte: 'piggy-bank' })[t.tipo];
-const txColor = t => t.tipo === 'receita' ? 'text-magre-green' : t.tipo === 'aporte' ? 'text-magre-orange2' : 'text-magre-red';
-const txSign = t => t.tipo === 'receita' ? '+ ' : '− ';
-
-function filteredTx() {
-  const list = [...state.tx].sort((a, b) => b.data.localeCompare(a.data) || b.id.localeCompare(a.id));
-  if (activeFilter === 'all') return list;
-  if (activeFilter === 'receita' || activeFilter === 'despesa' || activeFilter === 'aporte') return list.filter(t => t.tipo === activeFilter);
-  return list.filter(t => t.tipo === 'cartao' && t.origem === activeFilter);
-}
-
-function renderFilters() {
-  const opts = [
-    { id: 'all', label: 'Todas' },
-    { id: 'receita', label: 'Receitas' },
-    { id: 'despesa', label: 'Conta Corrente' },
-    { id: 'aporte', label: 'Aportes' },
-    ...state.cards.map(c => ({ id: c.id, label: 'Cartão ' + c.banco }))
-  ];
-  $('#filters').innerHTML = opts.map(o => `<button data-f="${o.id}" class="shrink-0 text-xs font-semibold px-3.5 py-2 rounded-full transition ${activeFilter === o.id ? 'grad-orange text-black' : 'bg-white/5 text-magre-muted hover:text-magre-light'}">${escapeHtml(o.label)}</button>`).join('');
-  $('#filters').querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => setFilter(b.dataset.f)));
-  const cur = opts.find(o => o.id === activeFilter);
-  $('#filterLabel').textContent = activeFilter === 'all' ? 'Todas as origens' : 'Filtro: ' + (cur ? cur.label : '');
-}
-
-function renderTx() {
-  const list = filteredTx();
-  $('#txCount').textContent = list.length;
-  $('#txEmpty').classList.toggle('hidden', list.length > 0);
-
-  $('#txTable').innerHTML = list.map(t => `
-    <tr class="border-b border-white/[.04] hover:bg-white/[.02] transition fade-in">
-      <td class="py-3.5 pr-4">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center ${txColor(t)}"><i data-lucide="${txIcon(t)}" class="w-4 h-4"></i></div>
-          <span class="font-medium">${escapeHtml(t.desc)}</span>
-        </div>
-      </td>
-      <td class="py-3.5 pr-4 text-magre-muted">${escapeHtml(t.cat)}</td>
-      <td class="py-3.5 pr-4 text-magre-muted">${fmtDate(t.data)}</td>
-      <td class="py-3.5 pr-4">${originBadge(t)}</td>
-      <td class="py-3.5 pr-4 text-right font-bold ${txColor(t)}">${state.hidden ? '••••' : txSign(t) + brl(t.valor)}</td>
-      <td class="py-3.5 text-right"><button data-del="${t.id}" class="w-8 h-8 rounded-lg text-magre-muted hover:text-magre-red hover:bg-magre-red/10 flex items-center justify-center" title="Remover"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
-    </tr>`).join('');
-
-  $('#txList').innerHTML = list.map(t => `
-    <li class="rounded-2xl p-3.5 bg-black/20 border border-white/5 flex items-center gap-3 fade-in">
-      <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 ${txColor(t)}"><i data-lucide="${txIcon(t)}" class="w-4 h-4"></i></div>
-      <div class="min-w-0 flex-1">
-        <p class="text-sm font-semibold truncate">${escapeHtml(t.desc)}</p>
-        <p class="text-[11px] text-magre-muted mb-1.5">${fmtDate(t.data)} · ${escapeHtml(t.cat)}</p>
-        ${originBadge(t)}
-      </div>
-      <div class="text-right shrink-0">
-        <p class="text-sm font-bold ${txColor(t)}">${state.hidden ? '••••' : txSign(t) + brl(t.valor)}</p>
-        <button data-del="${t.id}" class="mt-2 text-magre-muted hover:text-magre-red"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-      </div>
-    </li>`).join('');
-
-  document.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => removeTx(b.dataset.del)));
-}
-
-/* ---------- Formulário dinâmico ---------- */
-const tipoAtual = () => document.querySelector('input[name=tipo]:checked').value;
-
-function updateFormDynamic() {
-  const tipo = tipoAtual();
-  $('#fCat').innerHTML = CATEGORIAS[tipo].map(c => `<option>${c}</option>`).join('');
-  const origem = $('#fOrigem');
-  const lbl = $('#fOrigemLabel');
-  if (tipo === 'receita') {
-    lbl.textContent = 'Destino';
-    origem.innerHTML = `<option value="conta">Conta Corrente Magre</option>`;
-  } else if (tipo === 'despesa') {
-    lbl.textContent = 'Pago com';
-    origem.innerHTML = `<option value="conta">Conta Corrente Magre</option>`;
-  } else if (tipo === 'cartao') {
-    lbl.textContent = 'Qual cartão?';
-    origem.innerHTML = state.cards.map(c => `<option value="${c.id}">Cartão ${escapeHtml(c.banco)} · disp. ${brl(Math.max(0, c.limite - usedOf(c.id)))}</option>`).join('') || '<option value="">Cadastre um cartão</option>';
-  } else {
-    lbl.textContent = 'Qual alvo?';
-    origem.innerHTML = state.goals.map(g => `<option value="${g.id}">${escapeHtml(g.nome)}</option>`).join('') || '<option value="">Crie um alvo</option>';
-  }
-  updatePreview();
-}
-
-function updatePreview() {
-  const tipo = tipoAtual();
-  const v = parseFloat($('#fValor').value) || 0;
-  const p = $('#txPreview');
-  if (tipo === 'cartao') {
-    const c = cardById($('#fOrigem').value);
-    if (!c) { p.innerHTML = ''; return; }
-    const disp = c.limite - usedOf(c.id);
-    const after = disp - v;
-    p.innerHTML = `<i data-lucide="info" class="w-4 h-4 text-magre-orange"></i>Limite disponível no Cartão ${escapeHtml(c.banco)} após a compra: <b class="${after < 0 ? 'text-magre-red' : 'text-magre-light'}">${brl(after)}</b>${after < 0 ? ' · excede o limite' : ''}`;
-  } else if (tipo === 'aporte') {
-    const g = goalById($('#fOrigem').value);
-    if (!g) { p.innerHTML = ''; return; }
-    const pct = Math.min(100, ((g.guardado + v) / g.alvo) * 100);
-    p.innerHTML = `<i data-lucide="target" class="w-4 h-4 text-magre-orange"></i>"${escapeHtml(g.nome)}" irá para <b class="text-magre-light">${pct.toFixed(1).replace('.', ',')}%</b> do alvo`;
-  } else {
-    p.innerHTML = `<i data-lucide="landmark" class="w-4 h-4 text-magre-orange"></i>Movimenta diretamente sua conta corrente Magre`;
-  }
-  icons();
-}
-
-document.querySelectorAll('input[name=tipo]').forEach(r => r.addEventListener('change', updateFormDynamic));
-$('#fOrigem').addEventListener('change', updatePreview);
-$('#fValor').addEventListener('input', updatePreview);
-$('#fData').value = iso(today);
-
-$('#txForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  const tipo = fd.get('tipo');
-  const origem = fd.get('origem');
-  const valor = parseFloat(fd.get('valor'));
-  if (!valor || valor <= 0) return toast('Informe um valor válido', true);
-  if ((tipo === 'cartao' || tipo === 'aporte') && !origem) return toast('Selecione a origem do lançamento', true);
-  if (tipo === 'cartao') {
-    const c = cardById(origem);
-    if (valor > c.limite - usedOf(c.id)) return toast(`Limite insuficiente no Cartão ${c.banco}`, true);
-  }
-  addTx({ desc: fd.get('desc').trim(), valor, data: fd.get('data'), tipo, cat: fd.get('cat'), origem });
-  const labels = { receita: 'Receita registrada', despesa: 'Despesa registrada', cartao: 'Compra lançada no ' + ('Cartão ' + (cardById(origem)?.banco || '')), aporte: 'Aporte realizado' };
-  toast(`${labels[tipo]} · ${brl(valor)}`);
-  e.target.reset();
-  $('#fData').value = iso(today);
-  document.querySelector(`input[name=tipo][value=${tipo}]`).checked = true;
-  updateFormDynamic();
-  if (tipo === 'cartao') $('#fOrigem').value = origem;
-  updatePreview();
-});
-
-/* ---------- Ações ---------- */
-function addTx(t) {
-  t.id = uid('t');
-  state.tx.push(t);
-  if (t.tipo === 'aporte') { const g = goalById(t.origem); if (g) g.guardado += t.valor; }
-  commit();
-}
-function removeTx(id) {
-  const t = state.tx.find(x => x.id === id);
-  if (!t) return;
-  if (t.tipo === 'aporte') { const g = goalById(t.origem); if (g) g.guardado = Math.max(0, g.guardado - t.valor); }
-  if (t.conta && t.ref) {                       // pagamento de conta removido: a conta volta a ficar em aberto
-    const b = state.bills.find(x => x.id === t.conta);
-    if (b && b.pagoAte === t.ref) b.pagoAte = addMonths(t.ref, -1);
-  }
-  state.tx = state.tx.filter(x => x.id !== id);
-  commit();
-  toast('Lançamento removido');
-}
-function setFilter(f) { activeFilter = f; renderCards(); renderFilters(); renderTx(); icons(); }
-
-function commit() { save(); renderAll(); fakeSync(); }
-
 /* ---------- Contas a pagar ---------- */
-const BILL_CATS = ['Aluguel', 'Condomínio', 'Água', 'Energia', 'Gás', 'Internet', 'Telefone', 'Assinaturas', 'Educação', 'Saúde', 'Seguros', 'Impostos', 'Outros'];
-const BILL_ICONS = { 'Aluguel': 'home', 'Condomínio': 'building-2', 'Água': 'droplets', 'Energia': 'zap', 'Gás': 'flame', 'Internet': 'wifi', 'Telefone': 'smartphone', 'Assinaturas': 'tv', 'Educação': 'graduation-cap', 'Saúde': 'heart-pulse', 'Seguros': 'shield', 'Impostos': 'landmark', 'Outros': 'receipt' };
 const avisoDias = () => Number(state.diasAviso) || 3;
 const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 let alertDismissed = false, payingId = null;
 
 function billStatus(b) {
   const atual = ym(today);
-  const cycle = b.pagoAte ? addMonths(b.pagoAte, 1) : atual;     // próximo mês em aberto
+  const cycle = b.pagoAte ? addMonths(b.pagoAte, 1) : atual;
   const due = dueDate(cycle, b.venc);
   const diff = Math.round((due - startOfToday()) / 86400000);
-  let atrasados = 0;                                              // quantos meses já venceram sem pagamento
+  let atrasados = 0;
   for (let c = cycle; c <= atual; c = addMonths(c, 1)) if (dueDate(c, b.venc) < startOfToday()) atrasados++;
   const status = diff < 0 ? 'vencida' : diff <= avisoDias() ? 'breve' : cycle > atual ? 'paga' : 'pendente';
   return { cycle, due, diff, status, atrasados };
@@ -941,6 +960,15 @@ function renderBillAlert(items) {
   $('#billAlertClose').addEventListener('click', () => { alertDismissed = true; box.className = 'hidden'; box.innerHTML = ''; });
 }
 
+function payFormaDefault() {
+  const a = accById($('#payOrigem').value);
+  return a && a.tipo === 'carteira' ? 'Dinheiro' : 'Boleto';
+}
+function updatePayForma() {
+  const isCard = !!cardById($('#payOrigem').value);
+  $('#payFormaWrap').classList.toggle('hidden', isCard);
+  $('#payForma').value = payFormaDefault();
+}
 function openPay(id) {
   const b = state.bills.find(x => x.id === id); if (!b) return;
   const s = billStatus(b);
@@ -950,35 +978,36 @@ function openPay(id) {
   $('#paySub').textContent = `Referência ${fmtCycle(s.cycle)} · vencimento ${s.due.toLocaleDateString('pt-BR')}`;
   $('#payValor').value = b.valor || '';
   $('#payData').value = iso(today);
-  $('#payOrigem').innerHTML = `<option value="conta">Conta Corrente Magre</option>` + state.cards.map(c => `<option value="${c.id}">Cartão ${escapeHtml(c.banco)}</option>`).join('');
+  $('#payOrigem').innerHTML =
+    `<optgroup label="Contas">${accOptions()}</optgroup>` +
+    (state.cards.length ? `<optgroup label="Cartões de crédito">${state.cards.map(c => `<option value="${c.id}">Cartão ${escapeHtml(c.banco)}</option>`).join('')}</optgroup>` : '');
+  $('#payForma').innerHTML = optList(FORMAS.despesa);
+  updatePayForma();
   $('#payUpdate').checked = false;
   $('#payUpdateLabel').textContent = b.valor ? `Atualizar o valor padrão desta conta (hoje ${brl(b.valor)})` : 'Usar este valor como padrão nos próximos meses';
-  $('#payModal').classList.remove('hidden'); icons();
+  openModal('payModal');
   setTimeout(() => $('#payValor').focus(), 50);
 }
-const closePay = () => { $('#payModal').classList.add('hidden'); payingId = null; };
-document.querySelectorAll('[data-close-pay]').forEach(el => el.addEventListener('click', closePay));
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closePay(); });
+$('#payOrigem').addEventListener('change', updatePayForma);
 
 $('#payForm').addEventListener('submit', e => {
   e.preventDefault();
-  const b = state.bills.find(x => x.id === payingId); if (!b) return closePay();
+  const b = state.bills.find(x => x.id === payingId); if (!b) return closeModals();
   const s = billStatus(b);
   const valor = parseFloat($('#payValor').value);
   const origem = $('#payOrigem').value;
+  const card = cardById(origem);
   if (!valor || valor <= 0) return toast('Informe o valor pago', true);
-  if (origem !== 'conta') {
-    const c = cardById(origem);
-    if (valor > c.limite - usedOf(c.id)) return toast(`Limite insuficiente no Cartão ${c.banco}`, true);
-  }
+  if (card && valor > card.limite - usedOf(card.id)) return toast(`Limite insuficiente no Cartão ${card.banco}`, true);
   if ($('#payUpdate').checked) b.valor = valor;
   b.pagoAte = s.cycle;
-  addTx({ desc: `${b.nome} · ref. ${fmtCycle(s.cycle)}`, valor, data: $('#payData').value, tipo: origem === 'conta' ? 'despesa' : 'cartao', cat: b.cat, origem, conta: b.id, ref: s.cycle });
-  closePay();
+  const t = { desc: `${b.nome} · ref. ${fmtCycle(s.cycle)}`, valor, data: $('#payData').value, tipo: card ? 'cartao' : 'despesa', cat: b.cat, origem, conta: b.id, ref: s.cycle };
+  if (!card) t.forma = $('#payForma').value;
+  addTx(t);
+  closeModals();
   toast(`${b.nome} liquidada · ${brl(valor)} lançado no extrato`);
 });
 
-$('#billCat').innerHTML = BILL_CATS.map(c => `<option>${c}</option>`).join('');
 $('#billForm').addEventListener('submit', e => {
   e.preventDefault();
   const fd = new FormData(e.target);
@@ -994,12 +1023,318 @@ $('#billForm').addEventListener('submit', e => {
   commit(); toast(`Conta "${nome}" cadastrada`);
 });
 
-function renderAll() {
-  renderKPIs(); renderCards(); renderGoals(); renderBills(); renderFilters(); renderTx();
-  const tipo = tipoAtual(), sel = $('#fOrigem').value;
-  updateFormDynamic();
-  if ([...$('#fOrigem').options].some(o => o.value === sel)) $('#fOrigem').value = sel;
+/* ---------- Extrato ---------- */
+const badge = (cls, icon, text) => `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${cls} max-w-full"><i data-lucide="${icon}" class="w-3 h-3 shrink-0"></i><span class="truncate">${text}</span></span>`;
+const withForma = (name, forma) => escapeHtml(name) + (forma ? ` · ${escapeHtml(forma)}` : '');
+
+function originBadge(t) {
+  if (t.tipo === 'receita') return badge('bg-magre-green/10 text-magre-green border border-magre-green/20', accIcon(t.origem), withForma(accName(t.origem), t.forma));
+  if (t.tipo === 'despesa') return badge('bg-magre-red/10 text-magre-red border border-magre-red/20', accIcon(t.origem), withForma(accName(t.origem), t.forma));
+  if (t.tipo === 'cartao') { const c = cardById(t.origem); return badge('grad-orange text-black', 'credit-card', escapeHtml(c ? 'Cartão ' + c.banco : 'Cartão removido')); }
+  if (t.tipo === 'transferencia') return badge('bg-magre-blue/10 text-magre-blue border border-magre-blue/25', 'arrow-left-right', withForma(`${accName(t.origem)} → ${accName(t.destino)}`, t.forma));
+  const g = goalById(t.origem);
+  return badge('bg-magre-orange/10 text-magre-orange2 border border-magre-orange/30', 'piggy-bank', escapeHtml((g ? g.nome : 'Aporte') + (t.acc ? ' · de ' + accName(t.acc) : '')));
+}
+const txIcon = t => ({ receita: 'arrow-down-left', despesa: 'arrow-up-right', cartao: 'credit-card', aporte: 'piggy-bank', transferencia: 'arrow-left-right' })[t.tipo];
+const txColor = t => ({ receita: 'text-magre-green', aporte: 'text-magre-orange2', transferencia: 'text-magre-blue' })[t.tipo] || 'text-magre-red';
+const txAmount = t => state.hidden ? '••••' : (t.tipo === 'receita' ? '+ ' : t.tipo === 'transferencia' ? '' : '− ') + brl(t.valor);
+
+const TYPE_FILTERS = [['all', 'Todas'], ['receita', 'Receitas'], ['despesa', 'Despesas'], ['cartao', 'Cartões'], ['transferencia', 'Transferências'], ['aporte', 'Aportes']];
+function filteredTx() {
+  let list = [...state.tx].sort((a, b) => b.data.localeCompare(a.data) || b.id.localeCompare(a.id));
+  const f = activeFilter;
+  if (TYPE_FILTERS.some(([k]) => k === f) && f !== 'all') list = list.filter(t => t.tipo === f);
+  else if (accById(f)) list = list.filter(t => t.origem === f || t.destino === f || t.acc === f);
+  else if (cardById(f)) list = list.filter(t => t.tipo === 'cartao' && t.origem === f);
+  if (activeForma !== 'all') list = list.filter(t => activeForma === 'Crédito' ? t.tipo === 'cartao' : t.forma === activeForma);
+  return list;
+}
+
+function renderFilters() {
+  const opts = [
+    ...TYPE_FILTERS.map(([id, label]) => ({ id, label })),
+    ...state.accounts.map(a => ({ id: a.id, label: a.nome, icon: ACC_TYPES[a.tipo]?.icon })),
+    ...state.cards.map(c => ({ id: c.id, label: 'Cartão ' + c.banco, icon: 'credit-card' }))
+  ];
+  if (!opts.some(o => o.id === activeFilter)) activeFilter = 'all';
+  $('#filters').innerHTML = opts.map(o => `<button data-f="${o.id}" class="shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full transition ${activeFilter === o.id ? 'grad-orange text-black' : 'bg-white/5 text-magre-muted hover:text-magre-light'}">${o.icon ? `<i data-lucide="${o.icon}" class="w-3.5 h-3.5"></i>` : ''}${escapeHtml(o.label)}</button>`).join('');
+  $('#filters').querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => setFilter(b.dataset.f)));
+  const usadas = new Set(state.tx.map(t => t.tipo === 'cartao' ? 'Crédito' : t.forma).filter(Boolean));
+  const formas = [...ALL_FORMAS, 'Crédito'].filter(f => usadas.has(f) || f === activeForma);
+  $('#formaFilter').innerHTML = `<option value="all">Todas as formas</option>` + formas.map(f => `<option${f === activeForma ? ' selected' : ''}>${f}</option>`).join('');
+  const cur = opts.find(o => o.id === activeFilter);
+  $('#filterLabel').textContent = (activeFilter === 'all' ? 'Todas as origens' : 'Filtro: ' + cur.label) + (activeForma !== 'all' ? ` · ${activeForma}` : '');
+}
+$('#formaFilter').addEventListener('change', e => { activeForma = e.target.value; renderFilters(); renderTx(); icons(); });
+
+function renderTx() {
+  const list = filteredTx();
+  $('#txCount').textContent = list.length;
+  $('#txEmpty').classList.toggle('hidden', list.length > 0);
+
+  $('#txTable').innerHTML = list.map(t => `
+    <tr class="border-b border-white/[.04] hover:bg-white/[.02] transition fade-in">
+      <td class="py-3.5 pr-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center shrink-0 ${txColor(t)}"><i data-lucide="${txIcon(t)}" class="w-4 h-4"></i></div>
+          <span class="font-medium">${escapeHtml(t.desc)}</span>
+        </div>
+      </td>
+      <td class="py-3.5 pr-4 text-magre-muted">${escapeHtml(t.cat)}</td>
+      <td class="py-3.5 pr-4 text-magre-muted whitespace-nowrap">${fmtDate(t.data)}</td>
+      <td class="py-3.5 pr-4 max-w-[18rem]">${originBadge(t)}</td>
+      <td class="py-3.5 pr-4 text-right font-bold whitespace-nowrap ${txColor(t)}">${txAmount(t)}</td>
+      <td class="py-3.5 text-right"><button data-del="${t.id}" class="w-8 h-8 rounded-lg text-magre-muted hover:text-magre-red hover:bg-magre-red/10 flex items-center justify-center" title="Remover"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+    </tr>`).join('');
+
+  $('#txList').innerHTML = list.map(t => `
+    <li class="rounded-2xl p-3.5 bg-black/20 border border-white/5 flex items-center gap-3 fade-in">
+      <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 ${txColor(t)}"><i data-lucide="${txIcon(t)}" class="w-4 h-4"></i></div>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-semibold truncate">${escapeHtml(t.desc)}</p>
+        <p class="text-[11px] text-magre-muted mb-1.5">${fmtDate(t.data)} · ${escapeHtml(t.cat)}</p>
+        ${originBadge(t)}
+      </div>
+      <div class="text-right shrink-0">
+        <p class="text-sm font-bold ${txColor(t)}">${txAmount(t)}</p>
+        <button data-del="${t.id}" class="mt-2 text-magre-muted hover:text-magre-red"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+      </div>
+    </li>`).join('');
+
+  document.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => removeTx(b.dataset.del)));
+}
+
+/* ---------- Formulário de lançamento ---------- */
+const tipoAtual = () => document.querySelector('input[name=tipo]:checked').value;
+const show = (id, on) => $(id).classList.toggle('hidden', !on);
+
+function defaultForma(tipo, accId, destId) {
+  const isCart = id => (accById(id) || {}).tipo === 'carteira';
+  if (tipo === 'transferencia') return isCart(destId) ? 'Saque' : isCart(accId) ? 'Depósito' : 'Pix';
+  if (isCart(accId)) return 'Dinheiro';
+  return FORMAS[tipo] ? FORMAS[tipo][0] : '';
+}
+
+function updateFormDynamic() {
+  const tipo = tipoAtual();
+  const prevCat = $('#fCat').value, prevOrig = $('#fOrigem').value, prevExtra = $('#fExtra').value, prevForma = $('#fForma').value;
+  const origem = $('#fOrigem'), extra = $('#fExtra');
+
+  show('#wrapCat', tipo !== 'transferencia');
+  show('#wrapExtra', tipo === 'aporte' || tipo === 'transferencia');
+  show('#wrapForma', tipo === 'receita' || tipo === 'despesa' || tipo === 'transferencia');
+
+  if (tipo !== 'transferencia') {
+    const cats = state.categories[tipo] || [];
+    $('#fCat').innerHTML = optList(cats, cats.includes(prevCat) ? prevCat : cats[0]);
+    $('#fCatGear').dataset.openCats = tipo;
+  }
+
+  if (tipo === 'receita' || tipo === 'despesa') {
+    $('#fOrigemLabel').textContent = tipo === 'receita' ? 'Recebido em' : 'Pago com';
+    origem.innerHTML = accOptions();
+  } else if (tipo === 'cartao') {
+    $('#fOrigemLabel').textContent = 'Qual cartão?';
+    origem.innerHTML = state.cards.map(c => `<option value="${c.id}">Cartão ${escapeHtml(c.banco)} · disp. ${brl(Math.max(0, c.limite - usedOf(c.id)))}</option>`).join('') || '<option value="">Cadastre um cartão</option>';
+  } else if (tipo === 'aporte') {
+    $('#fOrigemLabel').textContent = 'Qual alvo?';
+    origem.innerHTML = state.goals.map(g => `<option value="${g.id}">${escapeHtml(g.nome)}</option>`).join('') || '<option value="">Crie um alvo</option>';
+    $('#fExtraLabel').textContent = 'Sai de';
+    extra.innerHTML = accOptions();
+  } else {
+    $('#fOrigemLabel').textContent = 'De';
+    origem.innerHTML = accOptions();
+  }
+  if ([...origem.options].some(o => o.value === prevOrig)) origem.value = prevOrig;
+
+  if (tipo === 'transferencia') {
+    $('#fExtraLabel').textContent = 'Para';
+    extra.innerHTML = accOptions(origem.value) || '<option value="">Cadastre outra conta</option>';
+  }
+  if ([...extra.options].some(o => o.value === prevExtra)) extra.value = prevExtra;
+
+  if (FORMAS[tipo]) {
+    $('#fForma').innerHTML = optList(FORMAS[tipo]);
+    $('#fForma').value = FORMAS[tipo].includes(prevForma) && $('#fForma').dataset.touched ? prevForma : defaultForma(tipo, origem.value, extra.value);
+  }
   updatePreview();
+}
+
+function updatePreview() {
+  const tipo = tipoAtual();
+  const v = parseFloat($('#fValor').value) || 0;
+  const o = $('#fOrigem').value, x = $('#fExtra').value;
+  const p = $('#txPreview');
+  const after = (id, delta) => { const r = accBalance(id) + delta; return `<b class="${r < 0 ? 'text-magre-red' : 'text-magre-light'}">${brl(r)}</b>`; };
+  let html = '';
+  if (tipo === 'cartao') {
+    const c = cardById(o);
+    if (c) { const r = c.limite - usedOf(c.id) - v; html = `<i data-lucide="info" class="w-4 h-4 text-magre-orange"></i>Limite disponível no Cartão ${escapeHtml(c.banco)} após a compra: <b class="${r < 0 ? 'text-magre-red' : 'text-magre-light'}">${brl(r)}</b>${r < 0 ? ' · excede o limite' : ''}`; }
+  } else if (tipo === 'aporte') {
+    const g = goalById(o);
+    if (g && accById(x)) html = `<i data-lucide="target" class="w-4 h-4 text-magre-orange"></i>"${escapeHtml(g.nome)}" vai para <b class="text-magre-light">${Math.min(100, ((g.guardado + v) / g.alvo) * 100).toFixed(1).replace('.', ',')}%</b> · saldo de ${escapeHtml(accName(x))}: ${after(x, -v)}`;
+  } else if (tipo === 'transferencia') {
+    if (accById(o) && accById(x)) html = `<i data-lucide="arrow-left-right" class="w-4 h-4 text-magre-blue"></i>${escapeHtml(accName(o))} fica com ${after(o, -v)} · ${escapeHtml(accName(x))} fica com ${after(x, v)}`;
+    else html = `<i data-lucide="info" class="w-4 h-4 text-magre-orange"></i>Cadastre pelo menos duas contas bancárias para transferir.`;
+  } else if (accById(o)) {
+    html = `<i data-lucide="${accIcon(o)}" class="w-4 h-4 text-magre-orange"></i>${tipo === 'receita' ? 'Entra em' : 'Sai de'} ${escapeHtml(accName(o))} · saldo após: ${after(o, tipo === 'receita' ? v : -v)}`;
+  }
+  p.innerHTML = html;
+  icons();
+}
+
+document.querySelectorAll('input[name=tipo]').forEach(r => r.addEventListener('change', () => { delete $('#fForma').dataset.touched; updateFormDynamic(); }));
+$('#fOrigem').addEventListener('change', () => {
+  const tipo = tipoAtual();
+  if (tipo === 'transferencia') {
+    const keep = $('#fExtra').value;
+    $('#fExtra').innerHTML = accOptions($('#fOrigem').value) || '<option value="">Cadastre outra conta</option>';
+    if ([...$('#fExtra').options].some(o => o.value === keep)) $('#fExtra').value = keep;
+  }
+  if (FORMAS[tipo] && !$('#fForma').dataset.touched) $('#fForma').value = defaultForma(tipo, $('#fOrigem').value, $('#fExtra').value);
+  updatePreview();
+});
+$('#fExtra').addEventListener('change', () => {
+  if (tipoAtual() === 'transferencia' && !$('#fForma').dataset.touched) $('#fForma').value = defaultForma('transferencia', $('#fOrigem').value, $('#fExtra').value);
+  updatePreview();
+});
+$('#fForma').addEventListener('change', () => { $('#fForma').dataset.touched = '1'; });
+$('#fValor').addEventListener('input', updatePreview);
+$('#fData').value = iso(today);
+
+$('#txForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const tipo = tipoAtual();
+  const origem = $('#fOrigem').value, extra = $('#fExtra').value;
+  const valor = parseFloat($('#fValor').value);
+  if (!valor || valor <= 0) return toast('Informe um valor válido', true);
+  if (!origem) return toast('Selecione a origem do lançamento', true);
+
+  const t = { desc: $('#fDesc').value.trim(), valor, data: $('#fData').value, tipo, origem };
+  if (tipo === 'transferencia') {
+    if (!extra || extra === origem) return toast('Escolha contas diferentes de origem e destino', true);
+    Object.assign(t, { cat: 'Transferência', destino: extra, forma: $('#fForma').value });
+  } else {
+    t.cat = $('#fCat').value;
+    if (tipo === 'receita' || tipo === 'despesa') t.forma = $('#fForma').value;
+    if (tipo === 'aporte') { if (!extra) return toast('Escolha de qual conta sai o aporte', true); t.acc = extra; }
+    if (tipo === 'cartao') { const c = cardById(origem); if (valor > c.limite - usedOf(c.id)) return toast(`Limite insuficiente no Cartão ${c.banco}`, true); }
+  }
+  addTx(t);
+
+  const labels = {
+    receita: `Receita em ${accName(origem)}`, despesa: `Despesa em ${accName(origem)}`,
+    cartao: 'Compra no Cartão ' + (cardById(origem)?.banco || ''), aporte: 'Aporte realizado',
+    transferencia: `Transferência ${accName(origem)} → ${accName(extra)}`
+  };
+  toast(`${labels[tipo]} · ${brl(valor)}`);
+  $('#fDesc').value = ''; $('#fValor').value = ''; $('#fData').value = iso(today);
+  updatePreview();
+});
+
+/* ---------- Categorias ---------- */
+let catDraft = null, catTab = 'despesa';
+const catUsage = (k, nome) => k === 'conta'
+  ? state.bills.filter(b => b.cat === nome).length + state.tx.filter(t => t.conta && t.cat === nome).length
+  : state.tx.filter(t => t.tipo === k && !t.conta && t.cat === nome).length;
+
+function openCats(tab) {
+  catDraft = {};
+  Object.keys(DEFAULT_CATS).forEach(k => catDraft[k] = state.categories[k].map(n => ({ orig: n, nome: n })));
+  catTab = CAT_TABS.some(([k]) => k === tab) ? tab : 'despesa';
+  $('#catMsg').textContent = '';
+  renderCatModal();
+  openModal('catModal');
+}
+function renderCatModal() {
+  $('#catTabs').innerHTML = CAT_TABS.map(([k, l]) => `<button type="button" data-cat-tab="${k}" class="shrink-0 text-xs font-semibold px-3.5 py-2 rounded-full transition ${k === catTab ? 'grad-orange text-black' : 'bg-white/5 text-magre-muted hover:text-magre-light'}">${l} <span class="opacity-60">${catDraft[k].length}</span></button>`).join('');
+  $('#catTabs').querySelectorAll('[data-cat-tab]').forEach(b => b.addEventListener('click', () => { catTab = b.dataset.catTab; renderCatModal(); }));
+  const items = catDraft[catTab];
+  $('#catList').innerHTML = items.map((it, i) => {
+    const uso = it.orig ? catUsage(catTab, it.orig) : 0;
+    return `
+    <div class="flex items-center gap-2">
+      <input data-cat-i="${i}" class="input py-2.5" value="${escapeHtml(it.nome)}" maxlength="40" />
+      <span class="shrink-0 w-20 text-[10px] text-magre-muted text-right">${it.orig ? (uso ? `${uso} ${uso === 1 ? 'uso' : 'usos'}` : 'sem uso') : 'nova'}</span>
+      <button type="button" data-cat-del="${i}" ${items.length === 1 ? 'disabled' : ''} class="shrink-0 w-9 h-9 rounded-lg text-magre-muted hover:text-magre-red hover:bg-magre-red/10 flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none" title="Remover"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>`;
+  }).join('');
+  $('#catList').querySelectorAll('[data-cat-i]').forEach(inp => inp.addEventListener('input', () => { items[inp.dataset.catI].nome = inp.value; }));
+  $('#catList').querySelectorAll('[data-cat-del]').forEach(b => b.addEventListener('click', () => { items.splice(Number(b.dataset.catDel), 1); renderCatModal(); }));
+  icons();
+}
+$('#catAddForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const nome = $('#catNew').value.trim();
+  if (!nome) return;
+  if (catDraft[catTab].some(it => it.nome.trim().toLowerCase() === nome.toLowerCase())) { $('#catMsg').textContent = `"${nome}" já existe nesta lista.`; return; }
+  catDraft[catTab].push({ orig: null, nome });
+  $('#catNew').value = ''; $('#catMsg').textContent = '';
+  renderCatModal();
+  $('#catList').scrollTop = $('#catList').scrollHeight;
+});
+$('#catSave').addEventListener('click', () => {
+  for (const [k, label] of CAT_TABS) {
+    const nomes = catDraft[k].map(it => it.nome.trim());
+    if (nomes.some(n => !n)) { catTab = k; renderCatModal(); $('#catMsg').textContent = `Há uma categoria sem nome em "${label}".`; return; }
+    const dup = nomes.find((n, i) => nomes.findIndex(m => m.toLowerCase() === n.toLowerCase()) !== i);
+    if (dup) { catTab = k; renderCatModal(); $('#catMsg').textContent = `"${dup}" aparece duas vezes em "${label}".`; return; }
+  }
+  let renomeadas = 0;
+  Object.keys(catDraft).forEach(k => {
+    catDraft[k].forEach(it => {
+      const novo = it.nome.trim();
+      if (!it.orig || it.orig === novo) return;
+      renomeadas++;
+      if (k === 'conta') {
+        state.bills.forEach(b => { if (b.cat === it.orig) b.cat = novo; });
+        state.tx.forEach(t => { if (t.conta && t.cat === it.orig) t.cat = novo; });
+      } else {
+        state.tx.forEach(t => { if (t.tipo === k && !t.conta && t.cat === it.orig) t.cat = novo; });
+      }
+    });
+    state.categories[k] = catDraft[k].map(it => it.nome.trim());
+  });
+  closeModals();
+  commit();
+  toast(renomeadas ? `Categorias salvas · ${renomeadas} renomeada(s) nos lançamentos` : 'Categorias salvas');
+});
+document.querySelectorAll('[data-open-cats]').forEach(b => b.addEventListener('click', () => openCats(b.dataset.openCats)));
+
+/* ---------- Modais ---------- */
+function openModal(id) { $('#' + id).classList.remove('hidden'); icons(); }
+function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden')); payingId = null; }
+document.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closeModals));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
+
+/* ---------- Ações ---------- */
+function addTx(t) {
+  t.id = uid('t');
+  state.tx.push(t);
+  if (t.tipo === 'aporte') { const g = goalById(t.origem); if (g) g.guardado += t.valor; }
+  commit();
+}
+function removeTx(id) {
+  const t = state.tx.find(x => x.id === id);
+  if (!t) return;
+  if (t.tipo === 'aporte') { const g = goalById(t.origem); if (g) g.guardado = Math.max(0, g.guardado - t.valor); }
+  if (t.conta && t.ref) {
+    const b = state.bills.find(x => x.id === t.conta);
+    if (b && b.pagoAte === t.ref) b.pagoAte = addMonths(t.ref, -1);
+  }
+  state.tx = state.tx.filter(x => x.id !== id);
+  commit();
+  toast('Lançamento removido');
+}
+function setFilter(f) { activeFilter = f; renderAccounts(); renderCards(); renderFilters(); renderTx(); icons(); }
+
+function commit() { save(); markDirty(true); renderAll(); schedulePush(); }
+
+function renderAll() {
+  renderKPIs(); renderAccounts(); renderCards(); renderGoals(); renderBills(); renderFilters(); renderTx();
+  const bc = $('#billCat').value;
+  $('#billCat').innerHTML = optList(state.categories.conta, state.categories.conta.includes(bc) ? bc : state.categories.conta[0]);
+  updateFormDynamic();
   $('#toggleEye').innerHTML = `<i data-lucide="${state.hidden ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
   icons();
 }
@@ -1008,7 +1343,6 @@ function animateBars(root) {
   requestAnimationFrame(() => requestAnimationFrame(() => root.querySelectorAll('[data-w]').forEach(b => b.style.width = b.dataset.w + '%')));
 }
 
-/* Formulários de novo cartão / alvo */
 document.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', () => $('#' + b.dataset.toggle).classList.toggle('hidden')));
 
 $('#cardForm').addEventListener('submit', e => {
@@ -1032,17 +1366,21 @@ $('#goalForm').addEventListener('submit', e => {
 $('#toggleEye').addEventListener('click', () => { state.hidden = !state.hidden; save(); renderAll(); });
 $('#resetBtn').addEventListener('click', () => {
   if (connected() && !confirm('Isso vai substituir os dados da sua planilha pelos dados de exemplo. Continuar?')) return;
-  state = seed(); activeFilter = 'all'; save(); renderAll(); toast('Dados de exemplo restaurados'); });
-
+  state = seed(); activeFilter = 'all'; activeForma = 'all'; commit(); toast('Dados de exemplo restaurados');
+});
 document.querySelectorAll('[data-wipe]').forEach(btn => btn.addEventListener('click', () => {
   const msg = connected()
     ? 'Apagar TODOS os cartões, alvos, contas e lançamentos? Isso também limpa a sua planilha.'
     : 'Apagar todos os dados de exemplo e começar com o site vazio?';
   if (!confirm(msg)) return;
-  state = { saldoInicial: 0, hidden: state.hidden, diasAviso: state.diasAviso, cards: [], goals: [], tx: [], bills: [] };
-  activeFilter = 'all';
+  state = {
+    hidden: state.hidden, diasAviso: state.diasAviso, categories: state.categories,
+    accounts: [{ id: uid('a'), nome: 'Conta Principal', tipo: 'corrente', saldoInicial: 0 }],
+    cards: [], goals: [], tx: [], bills: []
+  };
+  activeFilter = 'all'; activeForma = 'all';
   commit();
-  toast('Tudo limpo. Comece cadastrando seus cartões e contas.');
+  toast('Tudo limpo. Renomeie a "Conta Principal" e cadastre suas contas.');
 }));
 
 /* ---------- Sincronização com o Google Planilhas ---------- */
@@ -1050,7 +1388,10 @@ const CFG_KEY = 'magrebank_sheets_cfg';
 let cfg = { url: '', token: '' };
 try { cfg = JSON.parse(localStorage.getItem(CFG_KEY)) || cfg; } catch (e) {}
 const connected = () => !!(cfg.url && cfg.token);
-let lastSync = null, syncMode = 'local', pushTimer;
+let lastSync = null, syncMode = 'local', pushTimer, scriptOld = false;
+let dirty = false;
+try { dirty = localStorage.getItem(DIRTY_KEY) === '1'; } catch (e) {}
+function markDirty(v) { dirty = v && connected(); try { dirty ? localStorage.setItem(DIRTY_KEY, '1') : localStorage.removeItem(DIRTY_KEY); } catch (e) {} }
 
 function setSync(mode, detail) {
   syncMode = mode;
@@ -1077,54 +1418,82 @@ function updateSyncTime() {
 }
 setInterval(updateSyncTime, 5000);
 
+function renderScriptAlert() {
+  const box = $('#scriptAlert');
+  if (!scriptOld) { box.className = 'hidden'; box.innerHTML = ''; return; }
+  box.className = 'fade-in rounded-2xl px-4 sm:px-5 py-4 flex items-start gap-3 border bg-magre-red/10 border-magre-red/30';
+  box.innerHTML = `
+    <div class="w-10 h-10 rounded-xl bg-magre-red flex items-center justify-center shrink-0"><i data-lucide="file-warning" class="w-5 h-5 text-black"></i></div>
+    <div>
+      <p class="text-sm font-bold text-magre-red">Atualize o script da planilha</p>
+      <p class="text-xs text-magre-muted mt-0.5 leading-relaxed">Esta versão do site usa contas bancárias e categorias, que o script atual da planilha não guarda. Cole o novo Code.gs e publique uma nova versão da implantação. Até lá, seus lançamentos ficam salvos neste navegador e serão enviados assim que o script for atualizado.</p>
+    </div>`;
+  icons();
+}
+
 async function api(action, data, c = cfg) {
-  // text/plain evita a requisição "preflight" de CORS, que o Apps Script não responde
   const r = await fetch(c.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, token: c.token, data }) });
   let j;
   try { j = await r.json(); } catch (e) { throw new Error('Resposta inválida. Confira se a implantação permite acesso a "Qualquer pessoa".'); }
   if (!j.ok) throw new Error(j.error || 'Erro desconhecido');
   return j;
 }
-const payload = () => ({ saldoInicial: state.saldoInicial, cards: state.cards, goals: state.goals, tx: state.tx, bills: state.bills });
+const payload = () => ({ accounts: state.accounts, categories: state.categories, cards: state.cards, goals: state.goals, tx: state.tx, bills: state.bills });
+
+async function pushNow() {
+  await api('save', payload());
+  markDirty(false);
+  setSync('ok');
+}
+
+// A planilha é a fonte principal: contas e categorias vêm dela (se não existirem, normalize() recria a partir dos dados)
+const fromSheet = data => ({ ...state, ...data, accounts: data.accounts, categories: data.categories, hidden: state.hidden });
 
 async function pullFromSheet(primeiraConexao = false) {
   if (!connected()) { setSync('local'); openSettings(); return; }
   setSync('busy', 'Lendo a planilha…');
   try {
-    const { data } = await api('load');
-    const empty = !data.tx.length && !data.cards.length && !data.goals.length && !(data.bills || []).length;
-    if (empty && primeiraConexao) {
-      await api('save', payload());           // planilha nova: envia os dados atuais
-    } else {
-      state = { ...state, ...data, hidden: state.hidden };
-      save(); renderAll();
+    const j = await api('load');
+    const data = j.data;
+    scriptOld = !(Number(j.versao) >= SCRIPT_VERSION_REQUIRED);
+    renderScriptAlert();
+    if (scriptOld) {
+      // script antigo: mostra o que está na planilha (convertido para o formato novo), mas não grava nada nela
+      if (!dirty) { state = fromSheet(data); normalize(state); save(); renderAll(); }
+      setSync('error', 'Atualize o Code.gs da planilha');
+      return;
     }
-    setSync('ok');
+
+    const empty = !data.tx.length && !data.cards.length && !data.goals.length && !(data.bills || []).length && !(data.accounts || []).length;
+    if ((empty && primeiraConexao) || dirty) {
+      await pushNow();                         // envia o que está no navegador (planilha nova ou alterações pendentes)
+      return;
+    }
+    state = fromSheet(data);
+    const migrou = normalize(state);
+    save(); renderAll();
+    if (migrou) await pushNow(); else setSync('ok');
   } catch (e) { setSync('error', e.message); }
 }
 
 function schedulePush() {
   if (!connected()) return;
+  if (scriptOld) { setSync('error', 'Atualize o Code.gs da planilha'); return; }
   setSync('busy', 'Enviando para a planilha…');
   clearTimeout(pushTimer);
   pushTimer = setTimeout(async () => {
-    try { await api('save', payload()); setSync('ok'); }
-    catch (e) { setSync('error', e.message); toast('Não foi possível salvar na planilha', true); }
+    try { await pushNow(); }
+    catch (e) { setSync('error', e.message); toast('Não foi possível salvar na planilha. Tentaremos de novo na próxima sincronização.', true); }
   }, 700);
 }
-function fakeSync() { schedulePush(); }   // chamado por commit()
 
 $('#syncBtn').addEventListener('click', () => pullFromSheet());
 
-/* Modal de configuração */
 function openSettings() {
   $('#cfgUrl').value = cfg.url; $('#cfgToken').value = cfg.token; $('#cfgMsg').textContent = '';
-  $('#settingsModal').classList.remove('hidden'); icons();
+  openModal('settingsModal');
 }
-const closeSettings = () => $('#settingsModal').classList.add('hidden');
 document.querySelectorAll('[data-open-settings]').forEach(b => b.addEventListener('click', openSettings));
-document.querySelectorAll('[data-close-settings]').forEach(b => b.addEventListener('click', closeSettings));
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSettings(); });
 
 $('#settingsForm').addEventListener('submit', async e => {
   e.preventDefault();
@@ -1138,7 +1507,7 @@ $('#settingsForm').addEventListener('submit', async e => {
     await api('load', null, next);
     cfg = next;
     try { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); } catch (err) {}
-    closeSettings();
+    closeModals();
     toast('Google Planilhas conectado');
     pullFromSheet(true);
   } catch (err) {
@@ -1148,7 +1517,8 @@ $('#settingsForm').addEventListener('submit', async e => {
 $('#cfgDisconnect').addEventListener('click', () => {
   cfg = { url: '', token: '' };
   try { localStorage.removeItem(CFG_KEY); } catch (e) {}
-  closeSettings(); setSync('local'); toast('Planilha desconectada. Seguindo em modo local.');
+  markDirty(false); scriptOld = false; renderScriptAlert();
+  closeModals(); setSync('local'); toast('Planilha desconectada. Seguindo em modo local.');
 });
 
 /* ---------- Toast ---------- */
@@ -1156,16 +1526,16 @@ let toastTimer;
 function toast(msg, err = false) {
   const t = $('#toast');
   $('#toastText').textContent = msg;
-  t.querySelector('span').className = `w-8 h-8 rounded-lg flex items-center justify-center ${err ? 'bg-magre-red' : 'grad-orange'}`;
+  t.querySelector('span').className = `w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${err ? 'bg-magre-red' : 'grad-orange'}`;
   t.querySelector('span').innerHTML = `<i data-lucide="${err ? 'alert-triangle' : 'check'}" class="w-4 h-4 text-black"></i>`;
   icons();
   t.classList.remove('translate-y-24', 'opacity-0');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 2600);
+  toastTimer = setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 3000);
 }
 
 /* ---------- Navegação ativa ---------- */
-const sections = ['dashboard', 'cartoes', 'alvos', 'contas', 'lancamentos', 'extrato'];
+const sections = ['dashboard', 'bancos', 'cartoes', 'alvos', 'contas', 'lancamentos', 'extrato'];
 const navObserver = new IntersectionObserver(entries => {
   entries.forEach(en => {
     if (!en.isIntersecting) return;
@@ -1183,6 +1553,7 @@ sections.forEach(id => { const el = document.getElementById(id); if (el) navObse
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
 /* ---------- Início ---------- */
+save();
 renderAll();
 if (connected()) pullFromSheet(); else setSync('local');
 </script>

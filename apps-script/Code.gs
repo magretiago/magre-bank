@@ -1,5 +1,6 @@
 /**
  * MAGRE BANK · API do Google Planilhas + lembretes de contas por e-mail
+ * Versão 2 · contas bancárias, transferências, forma de pagamento e categorias
  * ------------------------------------------------------------
  * Cole este arquivo em: Planilha → Extensões → Apps Script.
  * 1. Troque a CHAVE abaixo por uma senha só sua.
@@ -7,28 +8,33 @@
  * 3. Implantar → Nova implantação → App da Web
  *    - Executar como: Eu
  *    - Quem pode acessar: Qualquer pessoa
+ *    (ao atualizar o código: Implantar → Gerenciar implantações → Editar → Nova versão)
  * 4. Copie a URL /exec e cole no site (botão de engrenagem).
  *
  * Opcional, na aba Config:
- *   email     → para onde enviar os lembretes (padrão: o seu e-mail Google)
+ *   email     → para onde enviar os lembretes (padrão: o seu e-mail Google; aceita vários separados por vírgula)
  *   diasAviso → quantos dias antes do vencimento avisar (padrão: 3)
  */
 
 const CHAVE = 'troque-por-uma-senha-forte';
 const HORA_LEMBRETE = 8;
+const VERSAO = 2;
 
+// Colunas novas sempre entram no FINAL, para os dados antigos continuarem alinhados.
 const ABAS = {
-  lancamentos: { nome: 'Lancamentos', cab: ['id', 'data', 'descricao', 'valor', 'tipo', 'categoria', 'origem', 'origem_nome', 'conta_id', 'referencia'] },
-  cartoes:     { nome: 'Cartoes',     cab: ['id', 'banco', 'limite', 'vencimento', 'bandeira', 'final'] },
-  alvos:       { nome: 'Alvos',       cab: ['id', 'nome', 'alvo', 'guardado', 'icone'] },
-  contas:      { nome: 'Contas',      cab: ['id', 'nome', 'dia_vencimento', 'valor', 'categoria', 'pago_ate', 'proximo_vencimento', 'situacao'] },
-  config:      { nome: 'Config',      cab: ['chave', 'valor'] }
+  lancamentos: { nome: 'Lancamentos',     cab: ['id', 'data', 'descricao', 'valor', 'tipo', 'categoria', 'origem', 'origem_nome', 'conta_id', 'referencia', 'forma', 'destino', 'conta_aporte'] },
+  bancos:      { nome: 'ContasBancarias', cab: ['id', 'nome', 'tipo', 'saldo_inicial', 'saldo_atual'] },
+  cartoes:     { nome: 'Cartoes',         cab: ['id', 'banco', 'limite', 'vencimento', 'bandeira', 'final'] },
+  alvos:       { nome: 'Alvos',           cab: ['id', 'nome', 'alvo', 'guardado', 'icone'] },
+  contas:      { nome: 'Contas',          cab: ['id', 'nome', 'dia_vencimento', 'valor', 'categoria', 'pago_ate', 'proximo_vencimento', 'situacao'] },
+  categorias:  { nome: 'Categorias',      cab: ['tipo', 'nome'] },
+  config:      { nome: 'Config',          cab: ['chave', 'valor'] }
 };
 
 /* ================= Entrada da API ================= */
 
 function doGet() {
-  return resposta({ ok: true, app: 'MAGRE BANK API', info: 'Use POST com action "load" ou "save".' });
+  return resposta({ ok: true, app: 'MAGRE BANK API', versao: VERSAO, info: 'Use POST com action "load" ou "save".' });
 }
 
 function doPost(e) {
@@ -41,8 +47,8 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    if (body.action === 'load') return resposta({ ok: true, data: lerTudo() });
-    if (body.action === 'save') { gravarTudo(body.data); return resposta({ ok: true, updatedAt: new Date().toISOString() }); }
+    if (body.action === 'load') return resposta({ ok: true, versao: VERSAO, data: lerTudo() });
+    if (body.action === 'save') { gravarTudo(body.data); return resposta({ ok: true, versao: VERSAO, updatedAt: new Date().toISOString() }); }
     return resposta({ ok: false, error: 'Ação desconhecida' });
   } catch (err) {
     return resposta({ ok: false, error: String(err.message || err) });
@@ -59,10 +65,8 @@ function configurar() {
   const padrao = {};
   if (cfg.email === undefined) padrao.email = Session.getEffectiveUser().getEmail();
   if (cfg.diasAviso === undefined) padrao.diasAviso = 3;
-  if (cfg.saldoInicial === undefined) padrao.saldoInicial = 0;
   gravarConfig(padrao);
 
-  // Recria o gatilho diário do lembrete (evita duplicados)
   ScriptApp.getProjectTriggers()
     .filter(t => t.getHandlerFunction() === 'enviarLembretes')
     .forEach(t => ScriptApp.deleteTrigger(t));
@@ -75,12 +79,17 @@ function aba(chave) {
   const def = ABAS[chave];
   const ss = SpreadsheetApp.getActive();
   let sh = ss.getSheetByName(def.nome);
+  const criarCabecalho = s => s.getRange(1, 1, 1, def.cab.length).setValues([def.cab])
+    .setFontWeight('bold').setBackground('#1A1A1A').setFontColor('#FF8C00');
   if (!sh) {
     sh = ss.insertSheet(def.nome);
-    sh.getRange(1, 1, 1, def.cab.length).setValues([def.cab])
-      .setFontWeight('bold').setBackground('#1A1A1A').setFontColor('#FF8C00');
+    criarCabecalho(sh);
     sh.setFrozenRows(1);
-    if (chave === 'contas') sh.getRange('F:F').setNumberFormat('@');   // "2026-11" como texto, não data
+    if (chave === 'contas') sh.getRange('F:F').setNumberFormat('@');
+  } else {
+    // aba de uma versão anterior: acrescenta as colunas novas ao cabeçalho
+    const atual = sh.getRange(1, 1, 1, def.cab.length).getValues()[0];
+    if (atual.join('|') !== def.cab.join('|')) criarCabecalho(sh);
   }
   return sh;
 }
@@ -109,9 +118,18 @@ function lerConfig() {
 
 function lerTudo() {
   const cfg = lerConfig();
+  const categories = {};
+  linhas('categorias').forEach(r => {
+    const k = String(r.tipo);
+    (categories[k] = categories[k] || []).push(String(r.nome));
+  });
   return {
-    saldoInicial: Number(cfg.saldoInicial) || 0,
+    saldoInicial: Number(cfg.saldoInicial) || 0,        // usado só na migração da versão 1
     diasAviso: Number(cfg.diasAviso) || 3,
+    accounts: linhas('bancos').map(r => ({
+      id: String(r.id), nome: String(r.nome), tipo: String(r.tipo || 'corrente'), saldoInicial: Number(r.saldo_inicial) || 0
+    })),
+    categories,
     cards: linhas('cartoes').map(r => ({
       id: String(r.id), banco: String(r.banco), limite: Number(r.limite), venc: Number(r.vencimento),
       bandeira: String(r.bandeira || 'Crédito'), final: String(r.final || '')
@@ -130,6 +148,9 @@ function lerTudo() {
         tipo: String(r.tipo), cat: String(r.categoria), origem: String(r.origem)
       };
       if (r.conta_id) { t.conta = String(r.conta_id); t.ref = dataTexto(r.referencia, 'yyyy-MM'); }
+      if (r.forma) t.forma = String(r.forma);
+      if (r.destino) t.destino = String(r.destino);
+      if (r.conta_aporte) t.acc = String(r.conta_aporte);
       return t;
     })
   };
@@ -145,10 +166,20 @@ function substituir(chave, valores) {
   if (valores.length) sh.getRange(2, 1, valores.length, cols).setValues(valores);
 }
 
-// Atualiza só as chaves informadas e preserva o resto (ex.: email, diasAviso)
 function gravarConfig(novos) {
   const cfg = Object.assign(lerConfig(), novos);
   substituir('config', Object.keys(cfg).map(k => [k, cfg[k]]));
+}
+
+function saldoConta(id, inicial, tx) {
+  let v = Number(inicial) || 0;
+  tx.forEach(t => {
+    if (t.tipo === 'receita' && t.origem === id) v += t.valor;
+    else if (t.tipo === 'despesa' && t.origem === id) v -= t.valor;
+    else if (t.tipo === 'aporte' && t.acc === id) v -= t.valor;
+    else if (t.tipo === 'transferencia') { if (t.origem === id) v -= t.valor; if (t.destino === id) v += t.valor; }
+  });
+  return Math.round(v * 100) / 100;
 }
 
 function gravarTudo(d) {
@@ -156,20 +187,40 @@ function gravarTudo(d) {
     throw new Error('Dados incompletos');
   }
   const bills = Array.isArray(d.bills) ? d.bills : [];
+  // Um site antigo (sem contas bancárias) não apaga as contas nem as categorias já salvas
+  const accounts = Array.isArray(d.accounts) ? d.accounts : lerTudo().accounts;
+
+  const nomeConta = Object.fromEntries(accounts.map(a => [a.id, a.nome]));
   const nomeCartao = Object.fromEntries(d.cards.map(c => [c.id, 'Cartão ' + c.banco]));
   const nomeAlvo = Object.fromEntries(d.goals.map(g => [g.id, g.nome]));
-  const origemNome = t => t.origem === 'conta' ? 'Conta Corrente' : (nomeCartao[t.origem] || nomeAlvo[t.origem] || t.origem);
+  const origemNome = t => {
+    if (t.tipo === 'transferencia') return `${nomeConta[t.origem] || t.origem} → ${nomeConta[t.destino] || t.destino}`;
+    if (t.tipo === 'cartao') return nomeCartao[t.origem] || t.origem;
+    if (t.tipo === 'aporte') return (nomeAlvo[t.origem] || t.origem) + (t.acc ? ' · de ' + (nomeConta[t.acc] || t.acc) : '');
+    return (nomeConta[t.origem] || (t.origem === 'conta' ? 'Conta Corrente' : t.origem)) + (t.forma ? ' · ' + t.forma : '');
+  };
   const hoje = inicioDoDia(new Date());
   const dias = Number(lerConfig().diasAviso) || 3;
 
+  if (Array.isArray(d.accounts)) {
+    substituir('bancos', accounts.map(a => [a.id, a.nome, a.tipo || 'corrente', Number(a.saldoInicial) || 0, saldoConta(a.id, a.saldoInicial, d.tx)]));
+  }
+  if (d.categories && typeof d.categories === 'object') {
+    const rows = [];
+    Object.keys(d.categories).forEach(k => (d.categories[k] || []).forEach(n => rows.push([k, n])));
+    substituir('categorias', rows);
+  }
   substituir('cartoes', d.cards.map(c => [c.id, c.banco, c.limite, c.venc, c.bandeira || '', c.final || '']));
   substituir('alvos', d.goals.map(g => [g.id, g.nome, g.alvo, g.guardado, g.icone || '']));
   substituir('contas', bills.map(b => {
     const s = situacaoConta(b, hoje, dias);
     return [b.id, b.nome, b.venc, b.valor == null ? '' : b.valor, b.cat, b.pagoAte || '', s.vencimento, s.rotulo];
   }));
-  substituir('lancamentos', d.tx.map(t => [t.id, t.data, t.desc, t.valor, t.tipo, t.cat, t.origem, origemNome(t), t.conta || '', t.ref || '']));
-  gravarConfig({ saldoInicial: Number(d.saldoInicial) || 0, atualizadoEm: new Date() });
+  substituir('lancamentos', d.tx.map(t => [
+    t.id, t.data, t.desc, t.valor, t.tipo, t.cat, t.origem, origemNome(t),
+    t.conta || '', t.ref || '', t.forma || '', t.destino || '', t.acc || ''
+  ]));
+  gravarConfig({ atualizadoEm: new Date() });
 }
 
 /* ================= Situação das contas ================= */
@@ -202,10 +253,7 @@ function situacaoConta(b, hoje, dias) {
 
 /* ================= Lembretes por e-mail ================= */
 
-// Executada todo dia pelo gatilho criado em configurar()
 function enviarLembretes() { enviar_(false); }
-
-// Rode manualmente para receber um e-mail de teste agora
 function testarLembrete() { enviar_(true); }
 
 function enviar_(forcar) {
