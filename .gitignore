@@ -1,0 +1,7 @@
+# Mantém no repositório apenas os arquivos do site
+/*
+!/index.html
+!/README.md
+!/.nojekyll
+!/.gitignore
+!/apps-script/
