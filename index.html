@@ -135,6 +135,7 @@
       <p class="mt-4 text-sm font-semibold">Dica Magre</p>
       <p class="text-xs text-magre-muted mt-1 leading-relaxed">Separe pelo menos 10% das receitas para seus alvos antes de gastar.</p>
       <button id="resetBtn" class="mt-4 w-full text-xs font-semibold py-2.5 rounded-xl border border-white/10 hover:border-magre-orange hover:text-magre-orange transition flex items-center justify-center gap-2"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>Restaurar dados de exemplo</button>
+      <button data-wipe class="mt-2 w-full text-xs font-semibold py-2.5 rounded-xl border border-white/10 text-magre-muted hover:border-magre-red hover:text-magre-red transition flex items-center justify-center gap-2"><i data-lucide="eraser" class="w-3.5 h-3.5"></i>Começar do zero</button>
     </div>
   </aside>
 
@@ -440,6 +441,7 @@
       <div><label class="label" for="cfgUrl">URL do App da Web</label><input id="cfgUrl" class="input" type="url" placeholder="https://script.google.com/macros/s/.../exec" required /></div>
       <div><label class="label" for="cfgToken">Chave de acesso</label><input id="cfgToken" class="input" type="password" placeholder="A mesma CHAVE do Code.gs" required /></div>
       <p id="cfgMsg" class="text-xs min-h-[1rem]"></p>
+      <p class="text-[11px] text-magre-muted leading-relaxed">Planilha nova e vazia? Ela recebe os dados que estão na tela agora. Para começar limpo, antes clique em <button type="button" data-wipe class="text-magre-orange font-semibold underline underline-offset-2">Começar do zero</button>.</p>
     </div>
     <div class="mt-5 flex flex-col-reverse sm:flex-row gap-2.5 sm:justify-between">
       <button type="button" id="cfgDisconnect" class="text-xs font-semibold px-4 py-3 rounded-xl border border-white/10 text-magre-muted hover:text-magre-red hover:border-magre-red/40 transition">Desconectar</button>
@@ -1032,6 +1034,17 @@ $('#resetBtn').addEventListener('click', () => {
   if (connected() && !confirm('Isso vai substituir os dados da sua planilha pelos dados de exemplo. Continuar?')) return;
   state = seed(); activeFilter = 'all'; save(); renderAll(); toast('Dados de exemplo restaurados'); });
 
+document.querySelectorAll('[data-wipe]').forEach(btn => btn.addEventListener('click', () => {
+  const msg = connected()
+    ? 'Apagar TODOS os cartões, alvos, contas e lançamentos? Isso também limpa a sua planilha.'
+    : 'Apagar todos os dados de exemplo e começar com o site vazio?';
+  if (!confirm(msg)) return;
+  state = { saldoInicial: 0, hidden: state.hidden, diasAviso: state.diasAviso, cards: [], goals: [], tx: [], bills: [] };
+  activeFilter = 'all';
+  commit();
+  toast('Tudo limpo. Comece cadastrando seus cartões e contas.');
+}));
+
 /* ---------- Sincronização com o Google Planilhas ---------- */
 const CFG_KEY = 'magrebank_sheets_cfg';
 let cfg = { url: '', token: '' };
@@ -1074,13 +1087,13 @@ async function api(action, data, c = cfg) {
 }
 const payload = () => ({ saldoInicial: state.saldoInicial, cards: state.cards, goals: state.goals, tx: state.tx, bills: state.bills });
 
-async function pullFromSheet() {
+async function pullFromSheet(primeiraConexao = false) {
   if (!connected()) { setSync('local'); openSettings(); return; }
   setSync('busy', 'Lendo a planilha…');
   try {
     const { data } = await api('load');
     const empty = !data.tx.length && !data.cards.length && !data.goals.length && !(data.bills || []).length;
-    if (empty) {
+    if (empty && primeiraConexao) {
       await api('save', payload());           // planilha nova: envia os dados atuais
     } else {
       state = { ...state, ...data, hidden: state.hidden };
@@ -1101,7 +1114,7 @@ function schedulePush() {
 }
 function fakeSync() { schedulePush(); }   // chamado por commit()
 
-$('#syncBtn').addEventListener('click', pullFromSheet);
+$('#syncBtn').addEventListener('click', () => pullFromSheet());
 
 /* Modal de configuração */
 function openSettings() {
@@ -1127,7 +1140,7 @@ $('#settingsForm').addEventListener('submit', async e => {
     try { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); } catch (err) {}
     closeSettings();
     toast('Google Planilhas conectado');
-    pullFromSheet();
+    pullFromSheet(true);
   } catch (err) {
     msg.className = 'text-xs text-magre-red'; msg.textContent = err.message === 'Failed to fetch' ? 'Não foi possível acessar a URL. Confira a implantação do App da Web.' : err.message;
   }
