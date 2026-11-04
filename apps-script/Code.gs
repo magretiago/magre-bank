@@ -1,6 +1,6 @@
 /**
  * MAGRE BANK · API do Google Planilhas + lembretes de contas por e-mail
- * Versão 3 · contas bancárias, transferências, categorias, faturas de cartão e parcelas
+ * Versão 4 · contas bancárias, transferências, categorias, faturas, parcelas e cobrança automática de contas
  * ------------------------------------------------------------
  * Cole este arquivo em: Planilha → Extensões → Apps Script.
  * 1. Troque a CHAVE abaixo por uma senha só sua.
@@ -18,7 +18,7 @@
 
 const CHAVE = 'troque-por-uma-senha-forte';
 const HORA_LEMBRETE = 8;
-const VERSAO = 3;
+const VERSAO = 4;
 
 // Colunas novas sempre entram no FINAL, para os dados antigos continuarem alinhados.
 const ABAS = {
@@ -27,7 +27,7 @@ const ABAS = {
   cartoes:     { nome: 'Cartoes',         cab: ['id', 'banco', 'limite', 'vencimento', 'bandeira', 'final', 'fechamento', 'fechamento_estimado'] },
   faturas:     { nome: 'Faturas',         cab: ['cartao_id', 'cartao', 'fatura', 'periodo', 'fechamento', 'vencimento', 'total', 'pago', 'em_aberto', 'situacao'] },
   alvos:       { nome: 'Alvos',           cab: ['id', 'nome', 'alvo', 'guardado', 'icone'] },
-  contas:      { nome: 'Contas',          cab: ['id', 'nome', 'dia_vencimento', 'valor', 'categoria', 'pago_ate', 'proximo_vencimento', 'situacao'] },
+  contas:      { nome: 'Contas',          cab: ['id', 'nome', 'dia_vencimento', 'valor', 'categoria', 'pago_ate', 'proximo_vencimento', 'situacao', 'cobranca', 'meio', 'meio_nome'] },
   categorias:  { nome: 'Categorias',      cab: ['tipo', 'nome'] },
   config:      { nome: 'Config',          cab: ['chave', 'valor'] }
 };
@@ -144,7 +144,8 @@ function lerTudo() {
     bills: linhas('contas').map(r => ({
       id: String(r.id), nome: String(r.nome), venc: Number(r.dia_vencimento),
       valor: r.valor === '' ? null : Number(r.valor), cat: String(r.categoria || 'Outros'),
-      pagoAte: dataTexto(r.pago_ate, 'yyyy-MM')
+      pagoAte: dataTexto(r.pago_ate, 'yyyy-MM'),
+      cobranca: String(r.cobranca || 'manual'), meio: String(r.meio || '')
     })),
     tx: linhas('lancamentos').map(r => {
       const t = {
@@ -227,9 +228,11 @@ function gravarTudo(d) {
     }));
   }
   substituir('alvos', d.goals.map(g => [g.id, g.nome, g.alvo, g.guardado, g.icone || '']));
+  const ctx = contextoContas(accounts, d.cards, d.tx);
   substituir('contas', bills.map(b => {
-    const s = situacaoConta(b, hoje, dias);
-    return [b.id, b.nome, b.venc, b.valor == null ? '' : b.valor, b.cat, b.pagoAte || '', s.vencimento, s.rotulo];
+    const s = situacaoConta(b, hoje, dias, ctx);
+    return [b.id, b.nome, b.venc, b.valor == null ? '' : b.valor, b.cat, b.pagoAte || '', s.vencimento, s.rotulo,
+      b.cobranca || 'manual', b.meio || '', s.meioNome || ''];
   }));
   substituir('lancamentos', d.tx.map(t => [
     t.id, t.data, t.desc, t.valor, t.tipo, t.cat, t.origem, origemNome(t),
@@ -268,11 +271,39 @@ function dataVenc(ciclo, dia) {
   return new Date(y, m - 1, Math.min(dia, new Date(y, m, 0).getDate()));
 }
 
-function situacaoConta(b, hoje, dias) {
+// saldos das contas, nomes de cartões/contas e último valor pago de cada conta a pagar
+function contextoContas(accounts, cards, tx) {
+  const saldos = {}, nomes = {}, ultimo = {};
+  accounts.forEach(a => { saldos[a.id] = saldoConta(a.id, a.saldoInicial, tx); nomes[a.id] = a.nome; });
+  cards.forEach(c => { nomes[c.id] = 'Cartão ' + c.banco; });
+  tx.filter(t => t.conta).sort((x, y) => String(x.data).localeCompare(String(y.data))).forEach(t => { ultimo[t.conta] = t.valor; });
+  return { saldos, nomes, ultimo };
+}
+
+function situacaoConta(b, hoje, dias, ctx) {
   const atual = mesTexto(hoje);
   const ciclo = b.pagoAte ? somarMeses(b.pagoAte, 1) : atual;
   const venc = dataVenc(ciclo, Number(b.venc));
   const diff = Math.round((venc - hoje) / 86400000);
+  const vencimento = Utilities.formatDate(venc, tz(), 'dd/MM/yyyy');
+  const meioNome = ctx && b.meio ? ctx.nomes[b.meio] : '';
+  const auto = (b.cobranca === 'cartao' || b.cobranca === 'debito') && meioNome;
+  if (auto) {
+    const tipo = b.cobranca === 'cartao' ? 'Cobrança no cartão' : 'Débito automático';
+    const fixo = b.valor !== null && b.valor !== '' && Number(b.valor) > 0;
+    const est = fixo ? Number(b.valor) : ctx.ultimo[b.id];
+    if (diff <= 0) {
+      return fixo
+        ? { status: 'lancar', diff, ciclo, vencimento, meioNome, rotulo: `${tipo} realizada · abra o site para lançar` }
+        : { status: 'confirmar', diff, ciclo, vencimento, meioNome, rotulo: `Confirmar valor ${b.cobranca === 'cartao' ? 'cobrado' : 'debitado'}` };
+    }
+    if (b.cobranca === 'debito' && diff <= dias) {
+      const semSaldo = est && ctx.saldos[b.meio] !== undefined && ctx.saldos[b.meio] < est;
+      return { status: semSaldo ? 'semsaldo' : 'debito', diff, ciclo, vencimento, meioNome,
+        rotulo: `${tipo} em ${diff} dia(s)` + (semSaldo ? ' · SALDO INSUFICIENTE' : '') };
+    }
+    return { status: 'agendada', diff, ciclo, vencimento, meioNome, rotulo: `${tipo} em ${diff} dia(s)` };
+  }
   let status = 'pendente';
   if (diff < 0) status = 'vencida';
   else if (diff <= dias) status = 'breve';
@@ -283,7 +314,7 @@ function situacaoConta(b, hoje, dias) {
     paga: 'Paga este mês',
     pendente: `Vence em ${diff} dias`
   }[status];
-  return { status, diff, ciclo, rotulo, vencimento: Utilities.formatDate(venc, tz(), 'dd/MM/yyyy') };
+  return { status, diff, ciclo, rotulo, vencimento, meioNome };
 }
 
 /* ================= Lembretes por e-mail ================= */
@@ -298,9 +329,12 @@ function enviar_(forcar) {
   const hoje = inicioDoDia(new Date());
   const dados = lerTudo();
 
+  const ctx = contextoContas(dados.accounts, dados.cards, dados.tx);
+  // assinaturas no cartão não geram lembrete (entram na fatura, que tem o próprio aviso)
+  const AVISAR = ['vencida', 'breve', 'debito', 'semsaldo', 'confirmar'];
   const itens = dados.bills
-    .map(b => Object.assign({ b }, situacaoConta(b, hoje, dias)))
-    .filter(i => i.status === 'vencida' || i.status === 'breve');
+    .map(b => Object.assign({ b }, situacaoConta(b, hoje, dias, ctx)))
+    .filter(i => AVISAR.includes(i.status));
 
   // faturas de cartão em aberto que vencem dentro do aviso (ou já venceram)
   linhas('faturas').forEach(f => {
@@ -321,12 +355,13 @@ function enviar_(forcar) {
   if (!itens.length && !forcar) return;
 
   const vencidas = itens.filter(i => i.status === 'vencida').length;
+  const semSaldo = itens.filter(i => i.status === 'semsaldo').length;
   const assunto = itens.length
-    ? `MAGRE BANK · ${vencidas ? vencidas + ' conta(s) vencida(s)' : itens.length + ' conta(s) vencendo em breve'}`
+    ? `MAGRE BANK · ${vencidas ? vencidas + ' conta(s) vencida(s)' : semSaldo ? semSaldo + ' débito(s) automático(s) sem saldo' : itens.length + ' conta(s) e débito(s) nos próximos dias'}`
     : 'MAGRE BANK · Teste de lembrete: nenhuma conta pendente';
 
   const linhasHtml = itens.map(i => {
-    const cor = i.status === 'vencida' ? '#FF5C5C' : '#FF8C00';
+    const cor = (i.status === 'vencida' || i.status === 'semsaldo') ? '#FF5C5C' : i.status === 'debito' ? '#7DB4FF' : '#FF8C00';
     const valor = i.b.valor ? Number(i.b.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Valor variável';
     return `<tr>
       <td style="padding:12px 14px;border-bottom:1px solid #2E2E2E;color:#F5F5F5;font-weight:600">${escapar(i.b.nome)}</td>
@@ -345,7 +380,7 @@ function enviar_(forcar) {
       </div>
       <div style="padding:22px 24px">
         <p style="margin:0 0 6px;color:#F5F5F5;font-size:16px;font-weight:700">${itens.length ? 'Você tem contas para pagar' : 'Tudo em dia por aqui'}</p>
-        <p style="margin:0 0 18px;color:#9A9A9A;font-size:13px">${itens.length ? 'Depois de pagar, marque como liquidada no site para lançar no extrato.' : 'Este é um e-mail de teste. Os lembretes chegam todo dia às ' + HORA_LEMBRETE + 'h quando houver contas a vencer.'}</p>
+        <p style="margin:0 0 18px;color:#9A9A9A;font-size:13px">${itens.length ? 'Contas manuais: depois de pagar, registre no site. Débitos automáticos: confira se há saldo na conta. Valores variáveis: confirme no site o valor cobrado.' : 'Este é um e-mail de teste. Os lembretes chegam todo dia às ' + HORA_LEMBRETE + 'h quando houver contas a vencer.'}</p>
         ${itens.length ? `<table style="width:100%;border-collapse:collapse;font-size:13px">
           <tr><th align="left" style="padding:8px 14px;color:#9A9A9A;font-size:11px;text-transform:uppercase">Conta</th><th align="left" style="padding:8px 14px;color:#9A9A9A;font-size:11px;text-transform:uppercase">Vencimento</th><th align="left" style="padding:8px 14px;color:#9A9A9A;font-size:11px;text-transform:uppercase">Valor</th><th align="left" style="padding:8px 14px;color:#9A9A9A;font-size:11px;text-transform:uppercase">Situação</th></tr>
           ${linhasHtml}</table>` : ''}

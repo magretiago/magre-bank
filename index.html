@@ -319,22 +319,37 @@
         <div class="flex flex-wrap items-center gap-3 justify-between">
           <div>
             <h2 class="text-lg font-bold flex items-center gap-2"><i data-lucide="bell-ring" class="w-5 h-5 text-magre-orange"></i>Contas a Pagar</h2>
-            <p class="text-xs text-magre-muted mt-1">Faturas, boletos e serviços recorrentes. Ao pagar, a conta vai direto para o extrato.</p>
+            <p class="text-xs text-magre-muted mt-1">Boletos, assinaturas, débitos automáticos e faturas. Tudo o que é pago vai direto para o extrato.</p>
           </div>
-          <button data-toggle="billForm" class="grad-orange text-black text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-glow hover:brightness-110 transition"><i data-lucide="plus" class="w-4 h-4"></i>Nova conta</button>
+          <button id="billNewBtn" class="grad-orange text-black text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-glow hover:brightness-110 transition"><i data-lucide="plus" class="w-4 h-4"></i>Nova conta</button>
         </div>
 
+        <div id="recSummary" class="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
+
         <form id="billForm" class="hidden mt-5 grid grid-cols-2 lg:grid-cols-12 gap-3 p-4 rounded-2xl bg-black/20 border border-white/5 fade-in">
-          <div class="col-span-2 lg:col-span-4"><label class="label">Conta</label><input class="input" name="nome" placeholder="Ex: Energia, Internet, Aluguel" required /></div>
-          <div class="lg:col-span-2"><label class="label">Dia do vencimento</label><input class="input" name="venc" type="number" min="1" max="31" placeholder="10" required /></div>
+          <input type="hidden" name="id" />
+          <div class="col-span-2 lg:col-span-4"><label class="label">Conta</label><input class="input" name="nome" placeholder="Ex: Energia, Netflix, Aluguel" required /></div>
+          <div class="lg:col-span-2"><label class="label" id="billVencLabel">Dia do vencimento</label><input class="input" name="venc" type="number" min="1" max="31" placeholder="10" required /></div>
           <div class="lg:col-span-2"><label class="label">Valor <span class="normal-case tracking-normal font-normal">(opcional)</span></label><input class="input" name="valor" type="number" min="0" step="0.01" placeholder="Variável" /></div>
-          <div class="col-span-2 lg:col-span-2">
+          <div class="col-span-2 lg:col-span-4">
             <label class="label">Categoria <button type="button" data-open-cats="conta" class="gear-link" title="Gerenciar categorias"><i data-lucide="settings-2" class="w-3.5 h-3.5"></i></button></label>
             <select class="input" name="cat" id="billCat"></select>
           </div>
-          <div class="col-span-2 lg:col-span-2 flex items-end"><button class="w-full grad-orange text-black font-bold text-sm py-3 rounded-xl">Cadastrar</button></div>
-          <label class="col-span-2 lg:col-span-12 flex items-center gap-2.5 text-xs text-magre-muted cursor-pointer select-none">
-            <input type="checkbox" name="pagaMes" class="w-4 h-4 accent-[#FF6A00]" /> A deste mês já está paga (o primeiro lembrete será no próximo mês)
+          <div class="col-span-2 sm:col-span-1 lg:col-span-4"><label class="label">Como é cobrada</label>
+            <select class="input" name="cobranca" id="billCobranca">
+              <option value="manual">Pagamento manual (boleto, Pix)</option>
+              <option value="cartao">No cartão de crédito</option>
+              <option value="debito">Débito automático em conta</option>
+            </select>
+          </div>
+          <div class="col-span-2 sm:col-span-1 lg:col-span-4" id="billMeioWrap"><label class="label" id="billMeioLabel">Qual cartão?</label><select class="input" name="meio" id="billMeio"></select></div>
+          <div class="col-span-2 lg:col-span-4 flex items-end gap-2">
+            <button type="button" id="billCancel" class="hidden px-4 py-3 rounded-xl border border-white/10 text-magre-muted text-sm font-semibold">Cancelar</button>
+            <button id="billSubmit" class="flex-1 grad-orange text-black font-bold text-sm py-3 rounded-xl">Cadastrar</button>
+          </div>
+          <p id="billHint" class="col-span-2 lg:col-span-12 text-[11px] text-magre-muted"></p>
+          <label id="billPagaWrap" class="col-span-2 lg:col-span-12 flex items-center gap-2.5 text-xs text-magre-muted cursor-pointer select-none">
+            <input type="checkbox" name="pagaMes" class="w-4 h-4 accent-[#FF6A00]" /> <span id="billPagaLabel">A deste mês já está paga (o primeiro lembrete será no próximo mês)</span>
           </label>
         </form>
 
@@ -460,7 +475,7 @@
         <span id="payUpdateLabel">Usar este valor como padrão nos próximos meses</span>
       </label>
     </div>
-    <button type="submit" class="mt-6 w-full grad-orange text-black font-bold text-sm py-3.5 rounded-xl shadow-glow hover:brightness-110 transition flex items-center justify-center gap-2"><i data-lucide="check-check" class="w-4 h-4"></i>Liquidar e lançar no extrato</button>
+    <button type="submit" class="mt-6 w-full grad-orange text-black font-bold text-sm py-3.5 rounded-xl shadow-glow hover:brightness-110 transition flex items-center justify-center gap-2"><i data-lucide="check-check" class="w-4 h-4"></i><span id="paySubmitText">Liquidar e lançar no extrato</span></button>
   </form>
 </div>
 
@@ -534,7 +549,7 @@
    ========================================================= */
 const STORAGE_KEY = 'magrebank_demo_v1';
 const DIRTY_KEY = 'magrebank_pending_sync';
-const SCRIPT_VERSION_REQUIRED = 3;
+const SCRIPT_VERSION_REQUIRED = 4;
 const today = new Date();
 const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 const daysAgo = n => { const d = new Date(today); d.setDate(d.getDate() - n); return iso(d); };
@@ -561,7 +576,7 @@ const DEFAULT_CATS = {
 const CAT_TABS = [['receita', 'Receitas'], ['despesa', 'Despesas'], ['cartao', 'Cartão'], ['aporte', 'Aportes'], ['conta', 'Contas a pagar']];
 const FORMAS = {
   receita: ['Pix', 'Transferência', 'Depósito', 'Dinheiro', 'Boleto', 'Outros'],
-  despesa: ['Pix', 'Débito', 'Dinheiro', 'Boleto', 'Transferência', 'Outros'],
+  despesa: ['Pix', 'Débito', 'Débito automático', 'Dinheiro', 'Boleto', 'Transferência', 'Outros'],
   transferencia: ['Pix', 'TED', 'Saque', 'Depósito', 'Outros'],
   fatura: ['Boleto', 'Débito automático', 'Pix', 'Transferência', 'Outros']
 };
@@ -620,9 +635,11 @@ function seedBills() {
   return [
     { id: 'b1', nome: 'Internet Fibra', venc: Math.max(1, d - 2), valor: 119.9, cat: 'Internet', pagoAte: anterior },
     { id: 'b2', nome: 'Conta de Água', venc: Math.min(28, d + 2), valor: null, cat: 'Água', pagoAte: anterior },
-    { id: 'b3', nome: 'Energia Elétrica', venc: Math.min(28, d + 9), valor: null, cat: 'Energia', pagoAte: anterior },
-    { id: 'b4', nome: 'Condomínio', venc: Math.min(28, d + 15), valor: 680, cat: 'Condomínio', pagoAte: anterior },
-    { id: 'b5', nome: 'Aluguel', venc: Math.max(1, d - 2), valor: 2300, cat: 'Aluguel', pagoAte: atual }
+    { id: 'b3', nome: 'Energia Elétrica', venc: Math.min(28, d + 2), valor: null, cat: 'Energia', pagoAte: anterior, cobranca: 'debito', meio: 'a2' },
+    { id: 'b4', nome: 'Condomínio', venc: Math.min(28, d + 15), valor: 680, cat: 'Condomínio', pagoAte: anterior, cobranca: 'debito', meio: 'a1' },
+    { id: 'b5', nome: 'Aluguel', venc: Math.max(1, d - 2), valor: 2300, cat: 'Aluguel', pagoAte: atual },
+    { id: 'b6', nome: 'Netflix', venc: Math.min(28, d + 5), valor: 55.9, cat: 'Assinaturas', pagoAte: anterior, cobranca: 'cartao', meio: 'c2' },
+    { id: 'b7', nome: 'Spotify', venc: Math.max(1, d - 1), valor: 21.9, cat: 'Assinaturas', pagoAte: anterior, cobranca: 'cartao', meio: 'c1' }
   ];
 }
 
@@ -652,6 +669,7 @@ function normalize(s) {
   } else {
     Object.keys(DEFAULT_CATS).forEach(k => { if (!(s.categories[k] || []).length) { s.categories[k] = [...DEFAULT_CATS[k]]; changed = true; } });
   }
+  s.bills.forEach(b => { if (!b.cobranca) b.cobranca = 'manual'; });
   s.cards.forEach(c => {
     if (!c.fech) { const f = Number(c.venc) - 7; c.fech = Math.min(28, f < 1 ? f + 30 : f); c.fechEstimado = true; changed = true; }
   });
@@ -1020,6 +1038,19 @@ const avisoDias = () => Number(state.diasAviso) || 3;
 const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 let alertDismissed = false, payingId = null;
 
+/* Como a conta é cobrada: manual, cartão (assinatura) ou débito automático.
+   Se o cartão/conta escolhido foi excluído, a conta volta a ser tratada como manual. */
+function billMeio(b) {
+  if (b.cobranca === 'cartao') { const c = cardById(b.meio); return c ? { tipo: 'cartao', id: c.id, nome: 'Cartão ' + c.banco } : null; }
+  if (b.cobranca === 'debito') { const a = accById(b.meio); return a ? { tipo: 'debito', id: a.id, nome: a.nome } : null; }
+  return null;
+}
+// valor esperado: o fixo, ou o último valor pago (para contas variáveis)
+function billEstimate(b) {
+  if (b.valor) return b.valor;
+  const ult = state.tx.filter(t => t.conta === b.id).sort((x, y) => y.data.localeCompare(x.data))[0];
+  return ult ? ult.valor : null;
+}
 function billStatus(b) {
   const atual = ym(today);
   const cycle = b.pagoAte ? addMonths(b.pagoAte, 1) : atual;
@@ -1027,11 +1058,55 @@ function billStatus(b) {
   const diff = Math.round((due - startOfToday()) / 86400000);
   let atrasados = 0;
   for (let c = cycle; c <= atual; c = addMonths(c, 1)) if (dueDate(c, b.venc) < startOfToday()) atrasados++;
+  const meio = billMeio(b), est = billEstimate(b);
+  if (meio) {
+    // cobrança automática: valores fixos são lançados sozinhos no dia; variáveis pedem confirmação
+    let status = 'agendada', semSaldo = false;
+    if (diff <= 0) status = 'confirmar';
+    else if (meio.tipo === 'debito' && diff <= avisoDias()) {
+      semSaldo = !!est && accBalance(meio.id) < est;
+      status = semSaldo ? 'semsaldo' : 'debito';
+    }
+    return { cycle, due, diff, status, atrasados, meio, est, auto: true };
+  }
   const status = diff < 0 ? 'vencida' : diff <= avisoDias() ? 'breve' : cycle > atual ? 'paga' : 'pendente';
-  return { cycle, due, diff, status, atrasados };
+  return { cycle, due, diff, status, atrasados, est };
 }
 
+/* Lança as cobranças automáticas de valor fixo que já chegaram ao dia (inclusive meses que ficaram para trás) */
+function autoLaunch() {
+  const feitos = [], hoje = startOfToday();
+  state.bills.forEach(b => {
+    const meio = billMeio(b);
+    if (!meio || !b.valor) return;
+    for (let guard = 0; guard < 24; guard++) {
+      const cycle = b.pagoAte ? addMonths(b.pagoAte, 1) : ym(today);
+      const due = dueDate(cycle, b.venc);
+      if (due > hoje) break;
+      if (!state.tx.some(t => t.conta === b.id && t.ref === cycle)) {
+        const t = { id: uid('t'), desc: `${b.nome} · ref. ${fmtCycle(cycle)}`, valor: b.valor, data: iso(due), tipo: meio.tipo === 'cartao' ? 'cartao' : 'despesa', cat: b.cat, origem: meio.id, conta: b.id, ref: cycle };
+        if (meio.tipo === 'debito') t.forma = 'Débito automático';
+        state.tx.push(t);
+        feitos.push(b.nome);
+      }
+      b.pagoAte = cycle;
+    }
+  });
+  return feitos;
+}
+function notifyAuto(feitos, delay = 0) {
+  if (!feitos.length) return;
+  const nomes = [...new Set(feitos)].join(', ');
+  setTimeout(() => toast(`${feitos.length} ${feitos.length === 1 ? 'cobrança automática lançada' : 'cobranças automáticas lançadas'} no extrato: ${nomes}`), delay);
+}
+
+const quando = n => n === 0 ? 'hoje' : n === 1 ? 'amanhã' : `em ${n} dias`;
 function statusPill(s) {
+  const pill = (cls, txt) => `<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full ${cls} text-right">${txt}</span>`;
+  if (s.status === 'confirmar') return pill('bg-magre-orange/15 text-magre-orange2 border border-magre-orange/30', s.meio.tipo === 'cartao' ? 'Confirmar valor cobrado' : 'Confirmar valor debitado');
+  if (s.status === 'semsaldo') return pill('bg-magre-red/15 text-magre-red border border-magre-red/25', `Saldo insuficiente · débito ${quando(s.diff)}`);
+  if (s.status === 'debito') return pill('bg-magre-blue/10 text-magre-blue border border-magre-blue/25', `Débito ${quando(s.diff)}`);
+  if (s.status === 'agendada') return pill('bg-white/5 text-magre-muted border border-white/10', `${s.meio.tipo === 'cartao' ? 'Cobrança' : 'Débito'} ${quando(s.diff)}`);
   if (s.status === 'vencida') return `<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-magre-red/15 text-magre-red border border-magre-red/25">Vencida há ${-s.diff} ${-s.diff === 1 ? 'dia' : 'dias'}${s.atrasados > 1 ? ` · ${s.atrasados} meses` : ''}</span>`;
   if (s.status === 'breve') return `<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-magre-orange/15 text-magre-orange2 border border-magre-orange/30">${s.diff === 0 ? 'Vence hoje' : s.diff === 1 ? 'Vence amanhã' : `Vence em ${s.diff} dias`}</span>`;
   if (s.status === 'paga') return `<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-magre-green/10 text-magre-green border border-magre-green/20">Paga este mês</span>`;
@@ -1066,8 +1141,33 @@ function renderBills() {
       </div>
       <button data-pay-fatura="${f.card.id}|${f.C}" class="mt-4 w-full text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 grad-orange text-black hover:brightness-110"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Pagar fatura</button>
     </div>`;
-    const ring = s.status === 'vencida' ? 'border-magre-red/40' : s.status === 'breve' ? 'border-magre-orange/40' : 'border-white/5';
-    const iconBg = s.status === 'vencida' ? 'bg-magre-red/15 text-magre-red' : s.status === 'paga' ? 'bg-magre-green/10 text-magre-green' : 'bg-magre-orange/10 text-magre-orange';
+    const red = s.status === 'vencida' || s.status === 'semsaldo';
+    const warn = s.status === 'breve' || s.status === 'confirmar';
+    const ring = red ? 'border-magre-red/40' : warn ? 'border-magre-orange/40' : s.status === 'debito' ? 'border-magre-blue/30' : 'border-white/5';
+    const iconBg = red ? 'bg-magre-red/15 text-magre-red' : s.status === 'paga' ? 'bg-magre-green/10 text-magre-green' : 'bg-magre-orange/10 text-magre-orange';
+    const chip = s.meio
+      ? (s.meio.tipo === 'cartao'
+          ? `<span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md grad-orange text-black"><i data-lucide="credit-card" class="w-3 h-3"></i>${escapeHtml(s.meio.nome)}</span>`
+          : `<span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-magre-blue/15 text-magre-blue"><i data-lucide="repeat" class="w-3 h-3"></i>Débito auto · ${escapeHtml(s.meio.nome)}</span>`)
+      : `<span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/5 text-magre-muted"><i data-lucide="hand-coins" class="w-3 h-3"></i>Pagamento manual</span>`;
+    const valorTxt = b.valor ? money(b.valor)
+      : s.est ? `<span class="text-magre-muted">~</span>${money(s.est)} <span class="text-[10px] font-semibold text-magre-muted">variável</span>`
+      : '<span class="text-magre-muted text-sm font-semibold">Valor variável</span>';
+    let acao;
+    if (s.auto && s.status === 'confirmar') {
+      acao = `<button data-bill-pay="${b.id}" class="mt-4 w-full text-xs font-bold py-2.5 rounded-xl grad-orange text-black hover:brightness-110 transition flex items-center justify-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Confirmar valor de ${fmtCycle(s.cycle)}</button>`;
+    } else if (s.auto) {
+      acao = `<p class="mt-4 text-[11px] text-magre-muted flex items-center gap-1.5"><i data-lucide="${b.valor ? 'zap' : 'bell'}" class="w-3.5 h-3.5 text-magre-orange shrink-0"></i>${b.valor
+        ? `Lançada automaticamente no extrato em ${fmtDia(s.due)}${s.meio.tipo === 'cartao' ? ', na fatura do cartão' : ''}.`
+        : `Em ${fmtDia(s.due)} você confirma o valor ${s.meio.tipo === 'cartao' ? 'cobrado' : 'debitado'}.`}</p>`;
+    } else {
+      acao = `<button data-bill-pay="${b.id}" class="mt-4 w-full text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 ${s.status === 'paga' ? 'bg-white/5 text-magre-muted hover:text-magre-light' : 'grad-orange text-black hover:brightness-110'}">
+        <i data-lucide="${s.status === 'paga' ? 'calendar-clock' : 'check-circle-2'}" class="w-4 h-4"></i>${s.status === 'paga' ? 'Antecipar ' + fmtCycle(s.cycle) : 'Pagar ' + fmtCycle(s.cycle)}
+      </button>`;
+    }
+    const saldoInfo = s.meio && s.meio.tipo === 'debito' && (s.status === 'debito' || s.status === 'semsaldo')
+      ? `<p class="mt-2 text-[11px] ${s.status === 'semsaldo' ? 'text-magre-red' : 'text-magre-muted'}">Saldo em ${escapeHtml(s.meio.nome)}: ${money(accBalance(s.meio.id))}${s.status === 'semsaldo' ? ' · transfira antes do débito' : ''}</p>` : '';
+    const rotuloData = s.auto ? (s.meio.tipo === 'cartao' ? 'Cobrança' : 'Débito') : s.status === 'paga' ? 'Próximo vencimento' : 'Vencimento';
     return `
     <div class="rounded-2xl p-4 bg-black/20 border ${ring} transition fade-in flex flex-col">
       <div class="flex items-start gap-3">
@@ -1075,23 +1175,26 @@ function renderBills() {
         <div class="min-w-0 flex-1">
           <p class="text-sm font-semibold truncate">${escapeHtml(b.nome)}</p>
           <p class="text-[11px] text-magre-muted">Todo dia ${String(b.venc).padStart(2, '0')} · ${escapeHtml(b.cat)}</p>
+          <div class="mt-1.5">${chip}</div>
         </div>
-        <button data-bill-del="${b.id}" class="w-7 h-7 rounded-lg text-magre-muted hover:text-magre-red hover:bg-magre-red/10 flex items-center justify-center" title="Excluir conta"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+        <button data-bill-edit="${b.id}" class="w-7 h-7 rounded-lg text-magre-muted hover:text-magre-orange hover:bg-white/5 flex items-center justify-center shrink-0" title="Editar conta"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+        <button data-bill-del="${b.id}" class="w-7 h-7 rounded-lg text-magre-muted hover:text-magre-red hover:bg-magre-red/10 flex items-center justify-center shrink-0" title="Excluir conta"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
       </div>
       <div class="mt-4 flex items-end justify-between gap-2">
         <div>
-          <p class="text-[11px] text-magre-muted">${s.status === 'paga' ? 'Próximo vencimento' : 'Vencimento'} · ${s.due.toLocaleDateString('pt-BR')}</p>
-          <p class="text-lg font-extrabold mt-0.5">${b.valor ? money(b.valor) : '<span class="text-magre-muted text-sm font-semibold">Valor variável</span>'}</p>
+          <p class="text-[11px] text-magre-muted">${rotuloData} · ${s.due.toLocaleDateString('pt-BR')}</p>
+          <p class="text-lg font-extrabold mt-0.5">${valorTxt}</p>
         </div>
         ${statusPill(s)}
       </div>
-      <button data-bill-pay="${b.id}" class="mt-4 w-full text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 ${s.status === 'paga' ? 'bg-white/5 text-magre-muted hover:text-magre-light' : 'grad-orange text-black hover:brightness-110'}">
-        <i data-lucide="${s.status === 'paga' ? 'calendar-clock' : 'check-circle-2'}" class="w-4 h-4"></i>${s.status === 'paga' ? 'Antecipar ' + fmtCycle(s.cycle) : 'Pagar ' + fmtCycle(s.cycle)}
-      </button>
+      ${saldoInfo}
+      ${acao}
     </div>`;
   }).join('');
   document.querySelectorAll('[data-bill-pay]').forEach(btn => btn.addEventListener('click', () => openPay(btn.dataset.billPay)));
+  document.querySelectorAll('[data-bill-edit]').forEach(btn => btn.addEventListener('click', () => openBillForm(btn.dataset.billEdit)));
   bindPayFatura($('#billsGrid'));
+  renderRecSummary();
   document.querySelectorAll('[data-bill-del]').forEach(btn => btn.addEventListener('click', () => {
     const b = state.bills.find(x => x.id === btn.dataset.billDel);
     if (!confirm(`Excluir a conta "${b.nome}"? Os pagamentos já lançados continuam no extrato.`)) return;
@@ -1101,21 +1204,27 @@ function renderBills() {
 }
 
 function renderBillAlert(items) {
-  const venc = items.filter(i => i.s.status === 'vencida');
-  const breve = items.filter(i => i.s.status === 'breve');
-  const n = venc.length + breve.length;
+  const by = st => items.filter(i => i.s.status === st);
+  const venc = by('vencida'), semSaldo = by('semsaldo'), confirmar = by('confirmar'), breve = by('breve'), debito = by('debito');
+  const graves = [...venc, ...semSaldo], avisos = [...confirmar, ...breve, ...debito];
+  const n = graves.length + avisos.length;
   document.querySelectorAll('[data-bill-badge]').forEach(el => {
     el.textContent = n; el.classList.toggle('hidden', !n); el.classList.toggle('flex', !!n);
-    el.classList.toggle('bg-magre-red', venc.length > 0); el.classList.toggle('bg-magre-orange', !venc.length && n > 0);
+    el.classList.toggle('bg-magre-red', graves.length > 0); el.classList.toggle('bg-magre-orange', !graves.length && n > 0);
   });
   const box = $('#billAlert');
   if (!n || alertDismissed) { box.className = 'hidden'; box.innerHTML = ''; return; }
-  const red = venc.length > 0;
-  const nomes = (red ? venc : breve).map(i => escapeHtml(nomeItem(i))).join(', ');
-  const titulo = red
-    ? `${venc.length} ${venc.length === 1 ? 'conta vencida' : 'contas vencidas'} sem pagamento`
-    : `${breve.length} ${breve.length === 1 ? 'conta vence' : 'contas vencem'} nos próximos ${avisoDias()} dias`;
-  const extra = red && breve.length ? ` · e ${breve.length} ${breve.length === 1 ? 'vence' : 'vencem'} em breve` : '';
+  const red = graves.length > 0;
+  const nomes = (red ? graves : avisos).map(i => escapeHtml(nomeItem(i))).join(', ');
+  const pl = (k, um, varios) => k === 1 ? um : varios.replace('#', k);
+  const partes = [
+    venc.length && pl(venc.length, '1 conta vencida sem pagamento', '# contas vencidas sem pagamento'),
+    semSaldo.length && pl(semSaldo.length, '1 débito automático sem saldo suficiente', '# débitos automáticos sem saldo suficiente'),
+    confirmar.length && pl(confirmar.length, '1 cobrança automática para confirmar o valor', '# cobranças automáticas para confirmar o valor'),
+    breve.length && pl(breve.length, `1 conta vence nos próximos ${avisoDias()} dias`, `# contas vencem nos próximos ${avisoDias()} dias`),
+    debito.length && pl(debito.length, '1 débito automático em breve', '# débitos automáticos em breve')
+  ].filter(Boolean);
+  const titulo = partes[0], extra = partes.length > 1 ? ' · ' + partes.slice(1).join(' · ') : '';
   box.className = `fade-in rounded-2xl px-4 sm:px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 border ${red ? 'bg-magre-red/10 border-magre-red/30' : 'bg-magre-orange/10 border-magre-orange/30'}`;
   box.innerHTML = `
     <div class="flex items-start gap-3 flex-1 min-w-0">
@@ -1146,6 +1255,7 @@ function openPayFatura(cardId, C) {
   const card = cardById(cardId); if (!card) return;
   const f = faturaInfo(card, C);
   payMode = 'fatura'; payFatura = { cardId, C }; payingId = null;
+  $('#paySubmitText').textContent = 'Pagar e lançar no extrato';
   $('#payIcon').innerHTML = `<i data-lucide="credit-card" class="w-5 h-5 text-black"></i>`;
   $('#payTitle').textContent = `Pagar fatura ${card.banco}`;
   $('#paySub').textContent = `Fatura ${fmtMes(C)} · compras de ${fmtDia(f.inicio)} a ${fmtDia(f.fecha)} · vence ${f.vence.toLocaleDateString('pt-BR')}`;
@@ -1164,20 +1274,23 @@ function openPay(id) {
   const b = state.bills.find(x => x.id === id); if (!b) return;
   const s = billStatus(b);
   payingId = id; payMode = 'bill'; payFatura = null;
-  $('#payOrigemLabel').textContent = 'Pago com';
+  $('#payOrigemLabel').textContent = s.meio ? (s.meio.tipo === 'cartao' ? 'Cobrado em' : 'Debitado de') : 'Pago com';
   $('#payUpdateWrap').classList.remove('hidden');
   $('#payIcon').innerHTML = `<i data-lucide="${BILL_ICONS[b.cat] || 'receipt'}" class="w-5 h-5 text-black"></i>`;
-  $('#payTitle').textContent = 'Pagar ' + b.nome;
-  $('#paySub').textContent = `Referência ${fmtCycle(s.cycle)} · vencimento ${s.due.toLocaleDateString('pt-BR')}`;
+  $('#payTitle').textContent = (s.meio ? 'Confirmar ' : 'Pagar ') + b.nome;
+  $('#paySub').textContent = `Referência ${fmtCycle(s.cycle)} · ${s.meio ? (s.meio.tipo === 'cartao' ? 'cobrança' : 'débito') : 'vencimento'} ${s.due.toLocaleDateString('pt-BR')}`;
+  $('#paySubmitText').textContent = s.meio ? 'Confirmar e lançar no extrato' : 'Liquidar e lançar no extrato';
   $('#payValor').value = b.valor || '';
-  $('#payData').value = iso(today);
+  $('#payData').value = s.meio && s.due <= startOfToday() ? iso(s.due) : iso(today);
   $('#payOrigem').innerHTML =
     `<optgroup label="Contas">${accOptions()}</optgroup>` +
     (state.cards.length ? `<optgroup label="Cartões de crédito">${state.cards.map(c => `<option value="${c.id}">Cartão ${escapeHtml(c.banco)}</option>`).join('')}</optgroup>` : '');
   $('#payForma').innerHTML = optList(FORMAS.despesa);
+  if (s.meio) $('#payOrigem').value = s.meio.id;
   updatePayForma();
+  if (s.meio && s.meio.tipo === 'debito') $('#payForma').value = 'Débito automático';
   $('#payUpdate').checked = false;
-  $('#payUpdateLabel').textContent = b.valor ? `Atualizar o valor padrão desta conta (hoje ${brl(b.valor)})` : 'Usar este valor como padrão nos próximos meses';
+  $('#payUpdateLabel').textContent = b.valor ? `Atualizar o valor padrão desta conta (hoje ${brl(b.valor)})` : s.meio ? 'Usar este valor como fixo (os próximos meses passam a ser lançados sozinhos)' : 'Usar este valor como padrão nos próximos meses';
   openModal('payModal');
   setTimeout(() => $('#payValor').focus(), 50);
 }
@@ -1211,20 +1324,93 @@ $('#payForm').addEventListener('submit', e => {
   toast(`${b.nome} liquidada · ${brl(valor)} lançado no extrato`);
 });
 
+function updateBillForm() {
+  const f = $('#billForm'), cob = f.cobranca.value, prev = f.meio.value;
+  $('#billMeioWrap').classList.toggle('hidden', cob === 'manual');
+  if (cob === 'cartao') {
+    $('#billMeioLabel').textContent = 'Qual cartão?';
+    f.meio.innerHTML = state.cards.map(c => `<option value="${c.id}">Cartão ${escapeHtml(c.banco)}</option>`).join('') || '<option value="">Cadastre um cartão primeiro</option>';
+  } else if (cob === 'debito') {
+    $('#billMeioLabel').textContent = 'Debitada de qual conta?';
+    f.meio.innerHTML = state.accounts.map(a => `<option value="${a.id}">${escapeHtml(a.nome)}</option>`).join('');
+  }
+  if ([...f.meio.options].some(o => o.value === prev)) f.meio.value = prev;
+  $('#billVencLabel').textContent = cob === 'manual' ? 'Dia do vencimento' : cob === 'cartao' ? 'Dia da cobrança' : 'Dia do débito';
+  $('#billHint').textContent = {
+    manual: 'Você recebe o alerta e o lembrete por e-mail, paga e registra pelo botão "Pagar".',
+    cartao: 'No dia da cobrança, o valor é lançado sozinho como gasto no cartão e entra na fatura certa. Sem valor fixo, você só confirma o valor.',
+    debito: 'No dia do débito, o valor é lançado sozinho na conta escolhida. Antes disso, o site avisa se o saldo não for suficiente. Sem valor fixo, você só confirma o valor.'
+  }[cob];
+  $('#billPagaLabel').textContent = cob === 'manual'
+    ? 'A deste mês já está paga (o primeiro lembrete será no próximo mês)'
+    : 'A cobrança deste mês já está registrada no extrato (começar a lançar no próximo mês)';
+}
+function openBillForm(id) {
+  const f = $('#billForm'), b = id ? state.bills.find(x => x.id === id) : null;
+  f.reset();
+  f.id.value = b ? b.id : '';
+  f.nome.value = b ? b.nome : '';
+  f.venc.value = b ? b.venc : '';
+  f.valor.value = b && b.valor ? b.valor : '';
+  if (b && state.categories.conta.includes(b.cat)) f.cat.value = b.cat;
+  f.cobranca.value = b ? b.cobranca || 'manual' : 'manual';
+  updateBillForm();
+  if (b && b.meio && [...f.meio.options].some(o => o.value === b.meio)) f.meio.value = b.meio;
+  $('#billPagaWrap').classList.toggle('hidden', !!b);
+  $('#billCancel').classList.toggle('hidden', !b);
+  $('#billSubmit').textContent = b ? 'Salvar' : 'Cadastrar';
+  f.classList.remove('hidden');
+  f.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  f.nome.focus();
+}
+$('#billNewBtn').addEventListener('click', () => {
+  const f = $('#billForm');
+  if (!f.classList.contains('hidden') && !f.id.value) { f.classList.add('hidden'); return; }
+  openBillForm(null);
+});
+$('#billCancel').addEventListener('click', () => { $('#billForm').reset(); $('#billForm').classList.add('hidden'); });
+$('#billCobranca').addEventListener('change', updateBillForm);
+
 $('#billForm').addEventListener('submit', e => {
   e.preventDefault();
-  const fd = new FormData(e.target);
-  const nome = fd.get('nome').trim();
-  const valor = parseFloat(fd.get('valor'));
-  state.bills.push({
-    id: uid('b'), nome, venc: Math.min(31, Math.max(1, parseInt(fd.get('venc')))),
-    valor: valor > 0 ? valor : null, cat: fd.get('cat'),
-    pagoAte: fd.get('pagaMes') ? ym(today) : addMonths(ym(today), -1)
-  });
-  e.target.reset(); e.target.classList.add('hidden');
+  const f = e.target;
+  const nome = f.nome.value.trim();
+  const valor = parseFloat(f.valor.value);
+  const cobranca = f.cobranca.value, meio = cobranca === 'manual' ? '' : f.meio.value;
+  if (cobranca !== 'manual' && !meio) return toast(cobranca === 'cartao' ? 'Cadastre um cartão antes' : 'Escolha a conta do débito', true);
+  const dados = { nome, venc: Math.min(31, Math.max(1, parseInt(f.venc.value))), valor: valor > 0 ? valor : null, cat: f.cat.value, cobranca, meio };
+  const editado = !!f.id.value;
+  if (editado) Object.assign(state.bills.find(x => x.id === f.id.value), dados);
+  else state.bills.push({ id: uid('b'), ...dados, pagoAte: f.pagaMes.checked ? ym(today) : addMonths(ym(today), -1) });
+  f.reset(); f.classList.add('hidden');
   alertDismissed = false;
-  commit(); toast(`Conta "${nome}" cadastrada`);
+  commit(); toast(editado ? `Conta "${nome}" atualizada` : `Conta "${nome}" cadastrada`);
 });
+
+/* ---------- Resumo de recorrentes ---------- */
+function renderRecSummary() {
+  const grupos = { cartao: [], debito: [], manual: [] };
+  state.bills.forEach(b => { const m = billMeio(b); grupos[m ? m.tipo : 'manual'].push(b); });
+  const somar = arr => {
+    let total = 0, estimado = false, semValor = 0;
+    arr.forEach(b => { const v = billEstimate(b); if (v == null) semValor++; else { total += v; if (!b.valor) estimado = true; } });
+    return { total: r2(total), estimado, semValor, n: arr.length };
+  };
+  const g = { cartao: somar(grupos.cartao), debito: somar(grupos.debito), manual: somar(grupos.manual) };
+  const tot = somar(state.bills);
+  const tile = (icon, cor, titulo, x, destaque) => `
+    <div class="rounded-2xl p-4 ${destaque ? 'bg-magre-orange/10 border border-magre-orange/25' : 'bg-black/20 border border-white/5'}">
+      <p class="text-[10px] font-semibold uppercase tracking-wider text-magre-muted flex items-center gap-1.5"><i data-lucide="${icon}" class="w-3.5 h-3.5 ${cor}"></i>${titulo}</p>
+      <p class="mt-2 text-lg font-extrabold">${x.estimado ? '<span class="text-magre-muted">~</span>' : ''}${money(x.total)}<span class="text-[11px] font-medium text-magre-muted">/mês</span></p>
+      <p class="text-[11px] text-magre-muted">${x.n} ${x.n === 1 ? 'conta' : 'contas'}${x.semValor ? ` · ${x.semValor} sem valor ainda` : ''}</p>
+    </div>`;
+  $('#recSummary').classList.toggle('hidden', !state.bills.length);
+  $('#recSummary').innerHTML =
+    tile('repeat', 'text-magre-orange', 'Recorrentes por mês', tot, true) +
+    tile('credit-card', 'text-magre-orange', 'Assinaturas no cartão', g.cartao) +
+    tile('landmark', 'text-magre-blue', 'Débito automático', g.debito) +
+    tile('hand-coins', 'text-magre-muted', 'Pagamento manual', g.manual);
+}
 
 /* ---------- Extrato ---------- */
 const badge = (cls, icon, text) => `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${cls} max-w-full"><i data-lucide="${icon}" class="w-3 h-3 shrink-0"></i><span class="truncate">${text}</span></span>`;
@@ -1556,22 +1742,26 @@ function removeTx(id) {
     return;
   }
   if (t.tipo === 'aporte') { const g = goalById(t.origem); if (g) g.guardado = Math.max(0, g.guardado - t.valor); }
+  let msg = 'Lançamento removido';
   if (t.conta && t.ref) {
     const b = state.bills.find(x => x.id === t.conta);
-    if (b && b.pagoAte === t.ref) b.pagoAte = addMonths(t.ref, -1);
+    // cobrança automática de valor fixo: o mês fica como "resolvido", senão ela seria lançada de novo na hora
+    if (b && billMeio(b) && b.valor) msg = `Lançamento removido · a cobrança de ${fmtCycle(t.ref)} não será lançada de novo`;
+    else if (b && b.pagoAte === t.ref) b.pagoAte = addMonths(t.ref, -1);
   }
   state.tx = state.tx.filter(x => x.id !== id);
   commit();
-  toast('Lançamento removido');
+  toast(msg);
 }
 function setFilter(f) { if (f !== activeFilter) activeFatura = 'all'; activeFilter = f; renderAccounts(); renderCards(); renderFilters(); renderTx(); icons(); }
 
-function commit() { save(); markDirty(true); renderAll(); schedulePush(); }
+function commit() { const auto = autoLaunch(); save(); markDirty(true); renderAll(); schedulePush(); notifyAuto(auto, 3300); }
 
 function renderAll() {
   renderKPIs(); renderAccounts(); renderCards(); renderGoals(); renderBills(); renderFilters(); renderTx();
   const bc = $('#billCat').value;
   $('#billCat').innerHTML = optList(state.categories.conta, state.categories.conta.includes(bc) ? bc : state.categories.conta[0]);
+  updateBillForm();
   updateFormDynamic();
   $('#toggleEye').innerHTML = `<i data-lucide="${state.hidden ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
   icons();
@@ -1669,7 +1859,7 @@ function renderScriptAlert() {
     <div class="w-10 h-10 rounded-xl bg-magre-red flex items-center justify-center shrink-0"><i data-lucide="file-warning" class="w-5 h-5 text-black"></i></div>
     <div>
       <p class="text-sm font-bold text-magre-red">Atualize o script da planilha</p>
-      <p class="text-xs text-magre-muted mt-0.5 leading-relaxed">Esta versão do site tem recursos novos (contas bancárias, categorias, faturas e parcelas) que o script atual da planilha não guarda. Cole o novo Code.gs e publique uma nova versão da implantação. Até lá, seus lançamentos ficam salvos neste navegador e serão enviados assim que o script for atualizado.</p>
+      <p class="text-xs text-magre-muted mt-0.5 leading-relaxed">Esta versão do site tem recursos novos (cobrança automática de contas, faturas, parcelas, contas bancárias e categorias) que o script atual da planilha não guarda. Cole o novo Code.gs e publique uma nova versão da implantação. Até lá, seus lançamentos ficam salvos neste navegador e serão enviados assim que o script for atualizado.</p>
     </div>`;
   icons();
 }
@@ -1708,20 +1898,26 @@ async function pullFromSheet(primeiraConexao = false) {
     renderScriptAlert();
     if (scriptOld) {
       // script antigo: mostra o que está na planilha (convertido para o formato novo), mas não grava nada nela
-      if (!dirty) { state = fromSheet(data); normalize(state); save(); renderAll(); }
+      if (!dirty) {
+        state = fromSheet(data); normalize(state);
+        const auto = autoLaunch(); if (auto.length) markDirty(true);
+        save(); renderAll(); notifyAuto(auto);
+      }
       setSync('error', 'Atualize o Code.gs da planilha');
       return;
     }
 
     const empty = !data.tx.length && !data.cards.length && !data.goals.length && !(data.bills || []).length && !(data.accounts || []).length;
     if ((empty && primeiraConexao) || dirty) {
+      const auto = autoLaunch(); save(); renderAll(); notifyAuto(auto);
       await pushNow();                         // envia o que está no navegador (planilha nova ou alterações pendentes)
       return;
     }
     state = fromSheet(data);
     const migrou = normalize(state);
-    save(); renderAll();
-    if (migrou) await pushNow(); else setSync('ok');
+    const auto = autoLaunch();
+    save(); renderAll(); notifyAuto(auto);
+    if (migrou || auto.length) await pushNow(); else setSync('ok');
   } catch (e) { setSync('error', e.message); }
 }
 
@@ -1802,8 +1998,11 @@ sections.forEach(id => { const el = document.getElementById(id); if (el) navObse
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
 /* ---------- Início ---------- */
+// conectado: a planilha é lida primeiro e o lançamento automático acontece em pullFromSheet
+const autoInicio = connected() ? [] : autoLaunch();
 save();
 renderAll();
+notifyAuto(autoInicio);
 if (connected()) pullFromSheet(); else setSync('local');
 </script>
 </body>

@@ -43,6 +43,18 @@ Na primeira conexão, se a planilha estiver vazia, o site envia os dados atuais 
 - **Transferência:** move dinheiro entre suas contas (um saque para a carteira, um Pix entre contas suas) sem contar como receita nem despesa.
 - **Categorias:** no menu **Categorias** (ou na engrenagem ao lado do campo Categoria) você cria, renomeia e remove categorias de cada tipo. Ao renomear, os lançamentos antigos são atualizados.
 
+## Cobrança automática: assinaturas no cartão e débito automático
+
+Ao cadastrar (ou editar, no lápis) uma conta a pagar, escolha **como ela é cobrada**:
+
+- **Pagamento manual** (boleto, Pix): alerta, lembrete por e-mail e botão "Pagar".
+- **No cartão de crédito**: no dia da cobrança, o valor é lançado sozinho como gasto no cartão escolhido e entra na fatura certa. Não gera alerta de pagamento (a fatura já tem o seu).
+- **Débito automático**: no dia do débito, o valor é lançado sozinho na conta bancária escolhida. Nos dias anteriores, o site avisa "Débito em X dias" e, se o saldo da conta não for suficiente, mostra o alerta em vermelho (também no e-mail).
+- **Valor variável** (energia, água): no dia, a conta pede para **confirmar o valor** cobrado ou debitado. O site usa o último valor pago como estimativa.
+- Os lançamentos automáticos acontecem quando o site é aberto, inclusive os de dias ou meses que ficaram para trás, com a data certa.
+- Excluir do extrato uma cobrança automática não faz ela ser lançada de novo.
+- O resumo **Recorrentes por mês** mostra quanto você gasta com contas fixas, separado por cartão, débito automático e pagamento manual.
+
 ## Faturas de cartão e parcelamento
 
 - Cada cartão tem **dia de fechamento** e **dia de vencimento**. Compras até o fechamento entram na fatura daquele mês; depois disso, na fatura seguinte. O cartão mostra a **fatura aberta** (com quantos dias faltam para fechar), a **fatura fechada a pagar** e o **melhor dia de compra**.
@@ -52,7 +64,7 @@ Na primeira conexão, se a planilha estiver vazia, o site envia os dados atuais 
 - No card **Despesas do Mês**, alterne entre **Por compra** (o que você comprou neste mês) e **Por fatura** (as faturas que vencem neste mês).
 - No extrato, cada compra mostra a fatura em que caiu, e ao filtrar um cartão aparece o filtro por fatura.
 
-### Atualizando o script (versões 1 ou 2)
+### Atualizando o script (versões anteriores)
 
 Sempre que o site pedir para atualizar o script (aviso vermelho no topo), siga os passos abaixo. Até lá, o site lê a planilha, mas não grava nada nela, e os lançamentos novos ficam guardados no navegador.
 
