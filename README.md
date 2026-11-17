@@ -12,7 +12,7 @@ Sem planilha conectada, tudo funciona em **modo local** (dados salvos no navegad
 2. Vá em **Extensões → Apps Script**.
 3. Apague o conteúdo do editor e cole o arquivo [`apps-script/Code.gs`](apps-script/Code.gs).
 4. Na linha `const CHAVE = '...'`, troque pela sua senha secreta.
-5. No topo do editor, escolha a função **`configurar`** e clique em **Executar**. Autorize o acesso quando pedir. As abas `Lancamentos`, `ContasBancarias`, `Cartoes`, `Faturas`, `Alvos`, `Contas`, `Categorias` e `Config` serão criadas, e o lembrete diário por e-mail (8h) é ativado.
+5. No topo do editor, escolha a função **`configurar`** e clique em **Executar**. Autorize o acesso quando pedir. As abas `Lancamentos`, `ContasBancarias`, `Cartoes`, `Faturas`, `Alvos`, `Contas`, `Categorias`, `Grupos` e `Config` serão criadas, e o lembrete diário por e-mail (8h) é ativado.
 6. Clique em **Implantar → Nova implantação**:
    - Tipo: **App da Web**
    - Executar como: **Eu**
@@ -42,6 +42,19 @@ Na primeira conexão, se a planilha estiver vazia, o site envia os dados atuais 
 - **Forma de pagamento:** receitas e despesas registram como o dinheiro entrou ou saiu (Pix, débito, dinheiro, boleto, transferência…). O extrato mostra, por exemplo, "Itaú · Pix", e dá para filtrar por conta e por forma.
 - **Transferência:** move dinheiro entre suas contas (um saque para a carteira, um Pix entre contas suas) sem contar como receita nem despesa.
 - **Categorias:** no menu **Categorias** (ou na engrenagem ao lado do campo Categoria) você cria, renomeia e remove categorias de cada tipo. Ao renomear, os lançamentos antigos são atualizados.
+
+## Relatórios e grupos de categorias
+
+- A seção **Relatórios** mostra, para o período escolhido (um mês, últimos 3, 6 ou 12 meses, o ano ou datas personalizadas):
+  - **Resumo:** gastos, receitas, quanto sobrou e quanto foi guardado em alvos, com comparação ao período anterior.
+  - **Para onde foi o dinheiro:** ranking por **grupo** (com as categorias de cada um) ou por **categoria**.
+  - **Fixos x variáveis:** contas recorrentes contra gastos avulsos.
+  - **Por onde saiu:** por conta e cartão, ou por forma de pagamento.
+  - **Evolução mês a mês:** receitas e gastos dos últimos meses, também em tabela.
+- Clique em qualquer barra para ver os lançamentos que formam aquele valor.
+- O seletor **Por compra / Por fatura** vale também aqui.
+- Contam como gastos as despesas e as compras no cartão. Ficam de fora transferências entre suas contas, pagamentos de fatura (as compras já foram contadas) e aportes.
+- **Grupos de categorias:** botão "Grupos de categorias" nos Relatórios (ou o link na tela de Categorias). Cada categoria fica em um grupo só. Na primeira vez, o site sugere grupos (Casa, Alimentação, Transporte…) com as categorias que você já tem. Renomear uma categoria atualiza os grupos.
 
 ## Cobrança automática: assinaturas no cartão e débito automático
 

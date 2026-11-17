@@ -1,6 +1,6 @@
 /**
  * MAGRE BANK · API do Google Planilhas + lembretes de contas por e-mail
- * Versão 4 · contas bancárias, transferências, categorias, faturas, parcelas e cobrança automática de contas
+ * Versão 5 · contas bancárias, transferências, categorias e grupos, faturas, parcelas e cobrança automática
  * ------------------------------------------------------------
  * Cole este arquivo em: Planilha → Extensões → Apps Script.
  * 1. Troque a CHAVE abaixo por uma senha só sua.
@@ -18,7 +18,7 @@
 
 const CHAVE = 'troque-por-uma-senha-forte';
 const HORA_LEMBRETE = 8;
-const VERSAO = 4;
+const VERSAO = 5;
 
 // Colunas novas sempre entram no FINAL, para os dados antigos continuarem alinhados.
 const ABAS = {
@@ -29,6 +29,7 @@ const ABAS = {
   alvos:       { nome: 'Alvos',           cab: ['id', 'nome', 'alvo', 'guardado', 'icone'] },
   contas:      { nome: 'Contas',          cab: ['id', 'nome', 'dia_vencimento', 'valor', 'categoria', 'pago_ate', 'proximo_vencimento', 'situacao', 'cobranca', 'meio', 'meio_nome'] },
   categorias:  { nome: 'Categorias',      cab: ['tipo', 'nome'] },
+  grupos:      { nome: 'Grupos',          cab: ['grupo_id', 'grupo', 'categoria'] },
   config:      { nome: 'Config',          cab: ['chave', 'valor'] }
 };
 
@@ -125,7 +126,16 @@ function lerTudo() {
     const k = String(r.tipo);
     (categories[k] = categories[k] || []).push(String(r.nome));
   });
+  // grupos de categorias: uma linha por categoria (grupo sem categorias = linha com categoria vazia)
+  const groups = [], porId = {};
+  linhas('grupos').forEach(r => {
+    const id = String(r.grupo_id);
+    let g = porId[id];
+    if (!g) { g = porId[id] = { id, nome: String(r.grupo), cats: [] }; groups.push(g); }
+    if (r.categoria !== '') g.cats.push(String(r.categoria));
+  });
   return {
+    groups: String(cfg.gruposIniciados) === 'sim' ? groups : undefined,   // undefined → o site cria os grupos sugeridos
     saldoInicial: Number(cfg.saldoInicial) || 0,        // usado só na migração da versão 1
     diasAviso: Number(cfg.diasAviso) || 3,
     accounts: linhas('bancos').map(r => ({
@@ -220,6 +230,11 @@ function gravarTudo(d) {
     Object.keys(d.categories).forEach(k => (d.categories[k] || []).forEach(n => rows.push([k, n])));
     substituir('categorias', rows);
   }
+  if (Array.isArray(d.groups)) {
+    const rows = [];
+    d.groups.forEach(g => (g.cats.length ? g.cats : ['']).forEach(c => rows.push([g.id, g.nome, c])));
+    substituir('grupos', rows);
+  }
   substituir('cartoes', d.cards.map(c => [c.id, c.banco, c.limite, c.venc, c.bandeira || '', c.final || '', c.fech || '', c.fechEstimado ? 'sim' : '']));
   if (Array.isArray(d.faturas)) {
     substituir('faturas', d.faturas.map(f => {
@@ -239,7 +254,7 @@ function gravarTudo(d) {
     t.conta || '', t.ref || '', t.forma || '', t.destino || '', t.acc || '',
     t.cartao || '', t.parc || '', t.parcN || '', t.grupo || '', t.fatura || ''
   ]));
-  gravarConfig({ atualizadoEm: new Date() });
+  gravarConfig(Array.isArray(d.groups) ? { atualizadoEm: new Date(), gruposIniciados: 'sim' } : { atualizadoEm: new Date() });
 }
 
 /* ================= Faturas ================= */
